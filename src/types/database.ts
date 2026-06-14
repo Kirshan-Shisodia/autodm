@@ -15,26 +15,44 @@ export interface Database {
           email: string;
           full_name: string | null;
           avatar_url: string | null;
-          subscription_plan: "free" | "pro" | "platinum";
+          plan: "free" | "pro" | "platinum";
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
-          dm_quota_monthly: number;
-          dm_quota_used_this_month: number;
-          dm_quota_reset_at: string;
+          subscription_status:
+            | "active"
+            | "trialing"
+            | "past_due"
+            | "canceled"
+            | "incomplete"
+            | null;
+          dm_count_month: number;
+          dm_count_month_reset_at: string;
+          white_label_enabled: boolean;
+          referral_code: string | null;
+          referred_by: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
-          id?: string;
+          id: string;
           email: string;
           full_name?: string | null;
           avatar_url?: string | null;
-          subscription_plan?: "free" | "pro" | "platinum";
+          plan?: "free" | "pro" | "platinum";
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
-          dm_quota_monthly?: number;
-          dm_quota_used_this_month?: number;
-          dm_quota_reset_at?: string;
+          subscription_status?:
+            | "active"
+            | "trialing"
+            | "past_due"
+            | "canceled"
+            | "incomplete"
+            | null;
+          dm_count_month?: number;
+          dm_count_month_reset_at?: string;
+          white_label_enabled?: boolean;
+          referral_code?: string | null;
+          referred_by?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -43,51 +61,88 @@ export interface Database {
           email?: string;
           full_name?: string | null;
           avatar_url?: string | null;
-          subscription_plan?: "free" | "pro" | "platinum";
+          plan?: "free" | "pro" | "platinum";
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
-          dm_quota_monthly?: number;
-          dm_quota_used_this_month?: number;
-          dm_quota_reset_at?: string;
+          subscription_status?:
+            | "active"
+            | "trialing"
+            | "past_due"
+            | "canceled"
+            | "incomplete"
+            | null;
+          dm_count_month?: number;
+          dm_count_month_reset_at?: string;
+          white_label_enabled?: boolean;
+          referral_code?: string | null;
+          referred_by?: string | null;
           created_at?: string;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "users_referred_by_fkey";
+            columns: ["referred_by"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       instagram_accounts: {
         Row: {
           id: string;
           user_id: string;
+          ig_user_id: string;
           ig_username: string;
-          ig_business_account_id: string;
-          ig_access_token_encrypted: string;
-          connected_at: string;
-          last_sync_at: string | null;
+          fb_page_id: string;
+          fb_page_name: string | null;
+          access_token_encrypted: string;
+          access_token_iv: string;
+          token_expires_at: string | null;
+          scopes: string[];
           is_active: boolean;
+          webhook_subscribed: boolean;
+          last_webhook_at: string | null;
+          disconnected_at: string | null;
+          disconnect_reason: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
+          ig_user_id: string;
           ig_username: string;
-          ig_business_account_id: string;
-          ig_access_token_encrypted: string;
-          connected_at?: string;
-          last_sync_at?: string | null;
+          fb_page_id: string;
+          fb_page_name?: string | null;
+          access_token_encrypted: string;
+          access_token_iv: string;
+          token_expires_at?: string | null;
+          scopes?: string[];
           is_active?: boolean;
+          webhook_subscribed?: boolean;
+          last_webhook_at?: string | null;
+          disconnected_at?: string | null;
+          disconnect_reason?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
+          ig_user_id?: string;
           ig_username?: string;
-          ig_business_account_id?: string;
-          ig_access_token_encrypted?: string;
-          connected_at?: string;
-          last_sync_at?: string | null;
+          fb_page_id?: string;
+          fb_page_name?: string | null;
+          access_token_encrypted?: string;
+          access_token_iv?: string;
+          token_expires_at?: string | null;
+          scopes?: string[];
           is_active?: boolean;
+          webhook_subscribed?: boolean;
+          last_webhook_at?: string | null;
+          disconnected_at?: string | null;
+          disconnect_reason?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -103,56 +158,95 @@ export interface Database {
       automations: {
         Row: {
           id: string;
-          user_id: string;
           ig_account_id: string;
+          user_id: string;
           name: string;
-          trigger_type: "comment" | "dm" | "story_mention";
-          trigger_keyword: string | null;
-          message_template_id: string | null;
-          custom_message: string | null;
+          type:
+            | "post"
+            | "reel"
+            | "story_reply"
+            | "story_mention"
+            | "inbox"
+            | "ad"
+            | "facebook_post";
+          trigger_type: "keyword" | "all" | "specific_phrase" | "starts_with";
+          trigger_keywords: string[];
+          media_id: string | null;
+          media_url: string | null;
+          dm_message: string;
+          dm_link: string | null;
+          short_link_id: string | null;
+          comment_reply_text: string | null;
+          ask_for_email: boolean;
+          email_followup_message: string | null;
+          follow_required: boolean;
           is_active: boolean;
-          daily_limit: number;
-          rate_limit_per_hour: number;
+          total_dms_sent: number;
+          total_clicks: number;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          user_id: string;
           ig_account_id: string;
+          user_id: string;
           name: string;
-          trigger_type: "comment" | "dm" | "story_mention";
-          trigger_keyword?: string | null;
-          message_template_id?: string | null;
-          custom_message?: string | null;
+          type:
+            | "post"
+            | "reel"
+            | "story_reply"
+            | "story_mention"
+            | "inbox"
+            | "ad"
+            | "facebook_post";
+          trigger_type: "keyword" | "all" | "specific_phrase" | "starts_with";
+          trigger_keywords?: string[];
+          media_id?: string | null;
+          media_url?: string | null;
+          dm_message: string;
+          dm_link?: string | null;
+          short_link_id?: string | null;
+          comment_reply_text?: string | null;
+          ask_for_email?: boolean;
+          email_followup_message?: string | null;
+          follow_required?: boolean;
           is_active?: boolean;
-          daily_limit?: number;
-          rate_limit_per_hour?: number;
+          total_dms_sent?: number;
+          total_clicks?: number;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          user_id?: string;
           ig_account_id?: string;
+          user_id?: string;
           name?: string;
-          trigger_type?: "comment" | "dm" | "story_mention";
-          trigger_keyword?: string | null;
-          message_template_id?: string | null;
-          custom_message?: string | null;
+          type?:
+            | "post"
+            | "reel"
+            | "story_reply"
+            | "story_mention"
+            | "inbox"
+            | "ad"
+            | "facebook_post";
+          trigger_type?: "keyword" | "all" | "specific_phrase" | "starts_with";
+          trigger_keywords?: string[];
+          media_id?: string | null;
+          media_url?: string | null;
+          dm_message?: string;
+          dm_link?: string | null;
+          short_link_id?: string | null;
+          comment_reply_text?: string | null;
+          ask_for_email?: boolean;
+          email_followup_message?: string | null;
+          follow_required?: boolean;
           is_active?: boolean;
-          daily_limit?: number;
-          rate_limit_per_hour?: number;
+          total_dms_sent?: number;
+          total_clicks?: number;
           created_at?: string;
           updated_at?: string;
         };
         Relationships: [
-          {
-            foreignKeyName: "automations_user_id_fkey";
-            columns: ["user_id"];
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          },
           {
             foreignKeyName: "automations_ig_account_id_fkey";
             columns: ["ig_account_id"];
@@ -160,9 +254,15 @@ export interface Database {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "automations_message_template_id_fkey";
-            columns: ["message_template_id"];
-            referencedRelation: "templates";
+            foreignKeyName: "automations_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automations_short_link_id_fkey";
+            columns: ["short_link_id"];
+            referencedRelation: "short_links";
             referencedColumns: ["id"];
           },
         ];
@@ -576,6 +676,8 @@ export interface Database {
           referrer_user_id: string;
           referred_user_id: string | null;
           referred_email: string | null;
+          commission_earned_cents: number;
+          commission_paid: boolean;
           signup_bonus_credited: boolean;
           created_at: string;
         };
@@ -584,6 +686,8 @@ export interface Database {
           referrer_user_id: string;
           referred_user_id?: string | null;
           referred_email?: string | null;
+          commission_earned_cents?: number;
+          commission_paid?: boolean;
           signup_bonus_credited?: boolean;
           created_at?: string;
         };
@@ -592,6 +696,8 @@ export interface Database {
           referrer_user_id?: string;
           referred_user_id?: string | null;
           referred_email?: string | null;
+          commission_earned_cents?: number;
+          commission_paid?: boolean;
           signup_bonus_credited?: boolean;
           created_at?: string;
         };
@@ -611,7 +717,7 @@ export interface Database {
         ];
       };
     };
-    Views: {};
+    Views: Record<string, never>;
     Functions: {
       set_updated_at: {
         Args: Record<PropertyKey, never>;
@@ -622,7 +728,7 @@ export interface Database {
         Returns: undefined;
       };
     };
-    Enums: {};
-    CompositeTypes: {};
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 }
