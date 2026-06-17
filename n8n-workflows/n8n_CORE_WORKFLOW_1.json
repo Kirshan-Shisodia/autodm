@@ -1,0 +1,717 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "instagram-webhook",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d092d229-b290-45c4-9f32-e3f2aa815df1",
+      "name": "Webhook",
+      "webhookId": "c4d84e56-1566-4bef-9169-718381b19c4f"
+    },
+    {
+      "parameters": {
+        "jsCode": "const query = $request.query;\n\nconst mode      = query[\"hub.mode\"];\nconst token     = query[\"hub.verify_token\"];\nconst challenge = query[\"hub.challenge\"];\n\nconst myToken = $env.FB_WEBHOOK_VERIFY_TOKEN;\n\nif (mode === \"subscribe\" && token === myToken) {\n  return [{ json: { challenge: challenge } }];\n}\n\nthrow new Error(\"Forbidden - verify token does not match\");"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        0
+      ],
+      "id": "2e2d9491-f451-4235-968d-3fdd1f364f36",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.challenge }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        352,
+        0
+      ],
+      "id": "506d60c7-7bb9-4b67-8e4c-86a4be74defd",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body  = $input.first().json.body;\nconst entry  = body.entry?.[0];\nconst change = entry?.changes?.[0];\nconst value  = change?.value;\n\n// Ignore comments from the page owner (don't DM yourself)\nif (value?.from?.id === entry?.id) {\n  return [];\n}\n\n// Only process comment events\nif (change?.field !== 'comments') {\n  return [];\n}\n\nreturn [{\n  json: {\n    comment_id:          value.id,\n    comment_text:        (value.text || '').toLowerCase().trim(),\n    commenter_id:        value.from?.id,\n    commenter_username:  value.from?.username,\n    post_id:             value.media?.id,\n    page_id:             entry.id,\n    received_at:         new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        288
+      ],
+      "id": "a64c2eca-af46-4bc2-bb14-6eb055da7473",
+      "name": "Extract Comment Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\nconst rawBody   = $input.first().json.rawBody;\nconst sigHeader = $input.first().json.headers['x-hub-signature-256'];\n\nconst expected = 'sha256=' + crypto\n  .createHmac('sha256', $env.FB_APP_SECRET)\n  .update(rawBody)\n  .digest('hex');\n\nif (sigHeader !== expected) {\n throw new Error('Invalid HMAC signature - request rejected');\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        288
+      ],
+      "id": "5695762e-9650-4e48-9e44-fe4fdf15028f",
+      "name": "Verify HMAC Sign",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "instagram-webhook",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -48,
+        288
+      ],
+      "id": "22fa1ef4-d962-468a-969b-33a9c656a68b",
+      "name": "Webhook-Post",
+      "webhookId": "c4d84e56-1566-4bef-9169-718381b19c4f"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"status\": \"received\" }",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        144,
+        288
+      ],
+      "id": "b9d5faa1-c030-439d-a73a-0cda032cc8a6",
+      "name": "Respond to Webhook-Post",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "url": "https://hgyxichoaoxkjvkzonme.supabase.co/rest/v1/automations",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "=media_id",
+              "value": "=eq.{{ $json.post_id }}"
+            },
+            {
+              "name": "is_active",
+              "value": "eq.true"
+            },
+            {
+              "name": "select",
+              "value": "*"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhneXhpY2hvYW94a2p2a3pvbm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MjU5MTMsImV4cCI6MjA5NjQwMTkxM30.o8uYYnC3RRrZFk4_0O7S43BVFPUzsJtAtqzQgyYDevI"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhneXhpY2hvYW94a2p2a3pvbm1lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDgyNTkxMywiZXhwIjoyMDk2NDAxOTEzfQ.lZhFSnOnB2Tap9ZNuXA3le5Vrzi3lpUVRGq4BaAszWA"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        704,
+        288
+      ],
+      "id": "112d0daf-0edc-4cc8-b396-35ce33df3efe",
+      "name": "Supabase - Find Matching Automation"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f42ae160-35ef-45c9-8ced-be7d1b478b40",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        928,
+        320
+      ],
+      "id": "269a9180-404b-45d4-b028-5c74acea62b1",
+      "name": "Automation Found ?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// automation comes directly as $json (n8n unpacks arrays automatically)\nconst automation   = $input.first().json;\nconst commentText  = $('Extract Comment Data').first().json.comment_text;\nconst keywords     = automation.trigger_keywords || [];\n\n// No keywords = trigger on any comment\nif (keywords.length === 0) {\n  return [{\n    json: {\n      ...automation,\n      ...$('Extract Comment Data').first().json\n    }\n  }];\n}\n\n// Check if comment contains any keyword\nconst matched = keywords.some(k =>\n  commentText.includes(k.toLowerCase().trim())\n);\n\nif (!matched) return [];\n\nreturn [{\n  json: {\n    ...automation,\n    ...$('Extract Comment Data').first().json\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        224
+      ],
+      "id": "84a79a08-c9fa-4d92-80fb-27283ad3e0f4",
+      "name": "Keyword Match Check"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "aaba5388-a153-4599-a4fb-e6913858a7c2",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1568,
+        224
+      ],
+      "id": "415660f6-7520-4ca1-b7b8-3739cc7b22ba",
+      "name": "If",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "url": "https://hgyxichoaoxkjvkzonme.supabase.co/rest/v1/dm_logs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "ig_account_id",
+              "value": "=eq.{{ $('Keyword Match Check').first().json.ig_account_id }}"
+            },
+            {
+              "name": "sent_at",
+              "value": "=gt.{{ new Date(Date.now() - 60*60*1000).toISOString() }}"
+            },
+            {
+              "name": "select",
+              "value": "id"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhneXhpY2hvYW94a2p2a3pvbm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MjU5MTMsImV4cCI6MjA5NjQwMTkxM30.o8uYYnC3RRrZFk4_0O7S43BVFPUzsJtAtqzQgyYDevI"
+            },
+            {
+              "name": "Authorization",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhneXhpY2hvYW94a2p2a3pvbm1lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDgyNTkxMywiZXhwIjoyMDk2NDAxOTEzfQ.lZhFSnOnB2Tap9ZNuXA3le5Vrzi3lpUVRGq4BaAszWA"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1760,
+        128
+      ],
+      "id": "72865bf4-1f58-42f6-8531-4b38c1f8a6f6",
+      "name": "Rate Limit Check",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "url": "https://hgyxichoaoxkjvkzonme.supabase.co/rest/v1/dm_logs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "recipient_ig_id",
+              "value": "=eq.{{ $json.commenter_id }}"
+            },
+            {
+              "name": "automation_id",
+              "value": "=eq.{{ $json.id }}"
+            },
+            {
+              "name": "sent_at",
+              "value": "=gt.{{ new Date(Date.now() - 24*60*60*1000).toISOString() }}"
+            },
+            {
+              "name": "select",
+              "value": "id"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhneXhpY2hvYW94a2p2a3pvbm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MjU5MTMsImV4cCI6MjA5NjQwMTkxM30.o8uYYnC3RRrZFk4_0O7S43BVFPUzsJtAtqzQgyYDevI"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhneXhpY2hvYW94a2p2a3pvbm1lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDgyNTkxMywiZXhwIjoyMDk2NDAxOTEzfQ.lZhFSnOnB2Tap9ZNuXA3le5Vrzi3lpUVRGq4BaAszWA"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1360,
+        224
+      ],
+      "id": "6772fc9d-2956-4771-a229-b4c4e776c853",
+      "name": "HTTP Request - Duplicate Check",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Read the rate limit count from the HTTP node\nconst rows = $input.first().json;\n\n// Count DMs sent this hour (handle empty/object responses)\nlet sentThisHour = 0;\nif (Array.isArray(rows)) {\n  sentThisHour = rows.length;\n}\n\nconst LIMIT = 180; // stay under Meta's 200/hour cap\n\n// Pull full data from the Keyword Match Check node (exact name)\nconst data = $('Keyword Match Check').first().json;\n\nif (sentThisHour >= LIMIT) {\n  return [{\n    json: {\n      ...data,\n      action: 'QUEUE'\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...data,\n    action: 'SEND'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1968,
+        128
+      ],
+      "id": "dc27c28c-b243-4a8a-aec2-e55362e05842",
+      "name": "Rate Limit Check Logic"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a7406dca-54ee-4744-a607-659130dc4908",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "SEND",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2176,
+        128
+      ],
+      "id": "8b808644-4133-41bf-a4fc-2676153ea1b1",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// const crypto = require('crypto');\n\n// // 1. Get ig_account_id from previous data\n// const igAccountId = $json.ig_account_id;\n\n// // 2. Fetch encrypted token from Supabase\n// const supabaseUrl = 'https://hgyxichoaoxkjvkzonme.supabase.co';\n// const serviceKey  = $env.SUPABASE_SERVICE_ROLE_KEY;\n\n// const response = await fetch(\n//   ⁠ ${supabaseUrl}/rest/v1/instagram_accounts?id=eq.${igAccountId}&select=access_token_encrypted,access_token_iv ⁠,\n//   {\n//     headers: {\n//       'apikey':        serviceKey,\n//       'Authorization': ⁠ Bearer ${serviceKey} ⁠,\n//     }\n//   }\n// );\n\n// const rows = await response.json();\n\n// if (!rows || rows.length === 0) {\n//   throw new Error(⁠ No account found: ${igAccountId} ⁠);\n// }\n\n// const { access_token_encrypted, access_token_iv } = rows[0];\n\n// // 3. Decrypt using AES-256-GCM\n// const ALGO       = 'aes-256-gcm';\n// const KEY        = Buffer.from($env.ENCRYPTION_KEY, 'base64');\n// const iv         = Buffer.from(access_token_iv, 'base64');\n// const data       = Buffer.from(access_token_encrypted, 'base64');\n// const ciphertext = data.subarray(0, data.length - 16);\n// const authTag    = data.subarray(data.length - 16);\n\n// const decipher = crypto.createDecipheriv(ALGO, KEY, iv);\n// decipher.setAuthTag(authTag);\n\n// const token = Buffer.concat([\n//   decipher.update(ciphertext),\n//   decipher.final()\n// ]).toString('utf8');\n\n// // 4. Pass token forward with all existing data\n// return [{\n//   json: {\n//     ...$json,\n//     page_access_token_decrypted: $env.PAGE_ACCESS_TOKEN\n//   }\n// }];\n\nreturn [{\n  json: {\n    ...$json,\n    page_access_token_decrypted: 'EAAT0buA89FEBRqJ3HDeZAYgH58RPpEgQSPpHcFJ48cI0jWwZCjeA6i6gKSKQM2OMYvEdl8EPXDm6ZBoas727Vma9oRqZBf40esMUwrm2MKve98WQoltdCrWoBWPhozhdLSOPht7wFhJQTdDur1Q4BkZAB2u8C08Kt87Q3cmPse1lzVt0JK3MAZCtmM55RLBBgRCspKQ7xD6q7QNIvU9YHA7AhG6dZCTsEL98UELQMia2ZBX4GB1nceRG2dYC6QPulVGVnyQKFcSPpz7gaqtZBDXFn7eiZAPDItVi0ZD'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2352,
+        -176
+      ],
+      "id": "910d50ef-392f-4167-8928-d95436f55154",
+      "name": "Decrypt Token",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v18.0/{{ $json.fb_page_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.page_access_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": { \"comment_id\": \"{{ $('Keyword Match Check').first().json.comment_id }}\" },\n  \"message\":   { \"text\": \"{{ $('Keyword Match Check').first().json.dm_message }}\" }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2592,
+        32
+      ],
+      "id": "c2d7293c-9592-474d-b548-6602e84c8d24",
+      "name": "HTTP Request - Send DM "
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hgyxichoaoxkjvkzonme.supabase.co/rest/v1/dm_logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"automation_id\":           \"{{ $json.id }}\",\n  \"ig_account_id\":           \"{{ $json.ig_account_id }}\",\n  \"user_id\":                 \"{{ $json.user_id }}\",\n  \"recipient_ig_id\":         \"{{ $json.commenter_id }}\",\n  \"recipient_username\":      \"{{ $json.commenter_username }}\",\n  \"triggered_by_comment_id\": \"{{ $json.comment_id }}\",\n  \"message_text\":            \"{{ $json.dm_message }}\",\n  \"status\":                  \"sent\",\n  \"sent_at\":                 \"{{ new Date().toISOString() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2800,
+        32
+      ],
+      "id": "5783e718-c440-4845-8dc2-f99d734567f3",
+      "name": "HTTP Request - Log DM_Logs"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hgyxichoaoxkjvkzonme.supabase.co/rest/v1/rpc/increment_dm_count",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"user_uuid\": \"{{ $json.user_id }}\" }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3008,
+        32
+      ],
+      "id": "ae19d6c0-56c6-4d57-a0ea-e6c3a981c7c3",
+      "name": "HTTP Request - Increment DM Counter"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/internal/get-token-by-account-id",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-internal-api-key",
+              "value": "={{ $env.INTERNAL_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"ig_account_id\": \"{{ $('Keyword Match Check').first().json.ig_account_id }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2384,
+        32
+      ],
+      "id": "24753a41-9a4f-42d6-a8d9-1556d042ede2",
+      "name": "GET Page Token",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify HMAC Sign": {
+      "main": [
+        [
+          {
+            "node": "Extract Comment Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook-Post": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook-Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook-Post": {
+      "main": [
+        [
+          {
+            "node": "Verify HMAC Sign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Comment Data": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Find Matching Automation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Find Matching Automation": {
+      "main": [
+        [
+          {
+            "node": "Automation Found ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Automation Found ?": {
+      "main": [
+        [
+          {
+            "node": "Keyword Match Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keyword Match Check": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Duplicate Check": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Check": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Check Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Check Logic": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "GET Page Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decrypt Token": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request - Send DM ": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Log DM_Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Log DM_Logs": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Increment DM Counter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Page Token": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Send DM ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "15dca6aa-c43c-4ca5-9a57-4b94c33b89b2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "001aff55ef4669a7a6876938a83b991cdcd4598e6ec7e9abff56712b071b595b"
+  },
+  "id": "UlCIYDg6F0MjnFej",
+  "tags": [
+    {
+      "updatedAt": "2026-06-09T12:32:29.828Z",
+      "createdAt": "2026-06-09T12:32:29.828Z",
+      "id": "ch7V6raw5TlX5Z8q",
+      "name": "Meta Webhook Receivers"
+    }
+  ]
+}
