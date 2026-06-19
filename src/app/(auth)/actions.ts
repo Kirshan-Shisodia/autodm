@@ -15,7 +15,13 @@ export async function login(formData: FormData) {
     redirect(`/login?error=${encodeURIComponent(error.message)}`);
   }
 
-  redirect("/accounts");
+  redirect("/dashboard");
+}
+
+export async function signOut() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
 }
 
 export async function signup(formData: FormData) {
@@ -36,5 +42,5 @@ export async function signup(formData: FormData) {
     redirect("/login?message=check_email");
   }
 
-  redirect("/accounts");
+  redirect("/dashboard");
 }

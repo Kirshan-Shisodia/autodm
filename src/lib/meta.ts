@@ -92,6 +92,37 @@ export async function getInstagramBusinessAccount(
   return { id: account.id as string, username: account.username as string };
 }
 
+export type IgMedia = {
+  id: string;
+  caption: string | null;
+  media_type: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM" | "REELS";
+  media_url: string | null;
+  thumbnail_url: string | null;
+  permalink: string;
+  timestamp: string;
+};
+
+/**
+ * Fetch a creator's recent media for the wizard's "select a post" step (spec §2).
+ * `igUserId` is the Instagram Business account id; `pageToken` is the decrypted
+ * Page access token. Caller is responsible for ownership checks and caching.
+ */
+export async function getInstagramMedia(
+  igUserId: string,
+  pageToken: string,
+  limit = 25,
+): Promise<IgMedia[]> {
+  const json = await gget(
+    buildUrl(`${igUserId}/media`, {
+      fields:
+        "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp",
+      limit: String(limit),
+      access_token: pageToken,
+    }),
+  );
+  return (json.data || []) as IgMedia[];
+}
+
 /** Subscribe the Page to webhook events. Returns true on success. */
 export async function subscribePageToWebhooks(
   pageId: string,

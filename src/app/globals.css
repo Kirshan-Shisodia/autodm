@@ -128,3 +128,109 @@
     @apply font-sans;
   }
 }
+
+/* ============================================================
+   Automation Wizard — Stripe × A24 design tokens (spec §2)
+   Namespaced --wz-* so they never clobber shadcn's tokens.
+   Consumed via Tailwind arbitrary values, e.g. bg-[var(--wz-bg-dark)].
+   ============================================================ */
+:root {
+  /* surfaces — Stripe light (form body) */
+  --wz-bg: #ffffff;
+  --wz-bg-alt: #f6f9fc; /* page background behind cards */
+  --wz-surface: #ebeef3; /* input fills */
+  --wz-text: #0a2540; /* Stripe deep navy */
+  --wz-text-muted: #425466;
+  --wz-border: #e3e8ee;
+
+  /* A24 — dark title plate only */
+  --wz-bg-dark: #000000;
+  --wz-bg-dark-alt: #0a0a0a;
+  --wz-text-dark: #ffffff;
+  --wz-text-dark-muted: rgba(255, 255, 255, 0.72);
+  --wz-accent-warm: #f4ede4; /* warm cream, eyebrow on the plate */
+
+  /* accents */
+  --wz-accent: #635bff; /* Stripe purple — the ONLY CTA color */
+  --wz-accent-hover: #5048e5;
+  --wz-accent-pop: #d9351c; /* A24 film red — ONE label per viewport */
+
+  /* radii */
+  --wz-r-input: 6px;
+  --wz-r-button: 6px;
+  --wz-r-card: 12px;
+
+  /* elevation — flat; shadow only for popovers/emoji picker */
+  --wz-shadow-pop: 0 4px 12px rgba(10, 37, 64, 0.08);
+}
+
+/* Display-serif plate title is the one cinematic moment. */
+.wz-font-display {
+  font-family: var(--font-fraunces), Georgia, serif;
+}
+.wz-font-mono {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.wz-font-ui {
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+/* Reduced motion: drop plate fade, step slide, sheet spring (spec §3.1, §8). */
+@media (prefers-reduced-motion: no-preference) {
+  .wz-animate-plate {
+    animation: wz-fade-in 0.5s ease-out both;
+  }
+  .wz-animate-step {
+    animation: wz-step-in 0.28s ease-out both;
+  }
+  .wz-animate-sheet {
+    animation: wz-sheet-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@keyframes wz-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes wz-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes wz-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   Dashboard — recent-activity feed highlight (spec §7).
+   New rows fade a subtle purple wash on arrival; reduced motion
+   skips the flash and the row simply appears.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  .dash-row-flash {
+    animation: dash-flash 1.4s ease-out both;
+  }
+}
+@keyframes dash-flash {
+  from {
+    background-color: rgba(99, 91, 255, 0.1);
+  }
+  to {
+    background-color: transparent;
+  }
+}

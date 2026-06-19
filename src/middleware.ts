@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Routes that require an authenticated session.
-const PROTECTED_PREFIXES = ["/accounts", "/dashboard"];
+const PROTECTED_PREFIXES = ["/accounts", "/dashboard", "/automations"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
