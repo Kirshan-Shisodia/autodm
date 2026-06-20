@@ -40,6 +40,9 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://autodm.app",
+  ),
   title: "AutoDM",
   description: "Automate your Instagram DMs.",
 };

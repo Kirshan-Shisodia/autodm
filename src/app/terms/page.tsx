@@ -1,0 +1,154 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import { MarketingFooter } from "@/components/marketing/footer";
+
+export const metadata: Metadata = {
+  title: "Terms of Service — AutoDM",
+  description:
+    "The terms that govern your use of AutoDM, the comment-to-DM automation service for Instagram.",
+  alternates: { canonical: "/terms" },
+};
+
+// ⚠️ Not legal advice. Starter template — fill the [bracketed] details and have
+// it reviewed before relying on it. Exists so the footer Terms link required by
+// Meta App Review resolves to a real page.
+const LAST_UPDATED = "June 20, 2026";
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-10">
+      <h2 className="wz-font-display text-2xl font-semibold tracking-tight text-[var(--wz-text)]">
+        {title}
+      </h2>
+      <div className="mt-4 space-y-4 text-[15px] leading-relaxed text-[var(--wz-text-muted)]">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+export default function TermsPage() {
+  return (
+    <>
+      <header className="border-b border-[var(--wz-border)] bg-[var(--wz-bg)]">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+          <Link
+            href="/"
+            className="wz-font-display text-xl font-semibold tracking-tight text-[var(--wz-text)]"
+          >
+            AutoDM
+          </Link>
+          <Link
+            href="/"
+            className="text-sm text-[var(--wz-text-muted)] transition-colors hover:text-[var(--wz-text)]"
+          >
+            ← Back to home
+          </Link>
+        </div>
+      </header>
+
+      <main className="bg-[var(--wz-bg)]">
+        <article className="mx-auto max-w-[720px] px-6 py-16">
+          <h1 className="wz-font-display text-4xl font-semibold tracking-tight text-[var(--wz-text)]">
+            Terms of Service
+          </h1>
+          <p className="wz-font-mono mt-3 text-sm text-[var(--wz-text-muted)]">
+            Last updated: {LAST_UPDATED}
+          </p>
+
+          <p className="mt-8 text-[15px] leading-relaxed text-[var(--wz-text-muted)]">
+            These Terms of Service (“Terms”) govern your access to and use of
+            AutoDM, operated by{" "}
+            <strong className="text-[var(--wz-text)]">[legal/business name]</strong>{" "}
+            (“we”, “us”). By creating an account or using the service, you agree
+            to these Terms.
+          </p>
+
+          <Section title="1. The service">
+            <p>
+              AutoDM lets you automatically reply, via Instagram direct message,
+              to people who comment on your own Instagram posts and reels, using
+              Meta&rsquo;s official Instagram APIs. You are responsible for the
+              content of the messages you configure and for how you use the
+              service.
+            </p>
+          </Section>
+
+          <Section title="2. Acceptable use">
+            <p>You agree not to use AutoDM to:</p>
+            <ul className="list-disc space-y-2 pl-6">
+              <li>send unsolicited or bulk messages, spam, or cold DMs;</li>
+              <li>
+                violate Meta&rsquo;s Platform Terms, the Instagram Community
+                Guidelines, or any applicable law;
+              </li>
+              <li>
+                send messages to anyone who has not first engaged with your
+                content;
+              </li>
+              <li>
+                harass, deceive, or harm recipients, or infringe their rights.
+              </li>
+            </ul>
+            <p>
+              We may suspend or terminate accounts that violate these rules or
+              that put our Meta platform access at risk.
+            </p>
+          </Section>
+
+          <Section title="3. Your Instagram account">
+            <p>
+              You must own or be authorized to manage any Instagram account you
+              connect. You authorize AutoDM to act on your behalf, within the
+              permissions you grant through Instagram&rsquo;s official login, to
+              read comments and send the messages you configure.
+            </p>
+          </Section>
+
+          <Section title="4. Plans & billing">
+            <p>
+              Paid plans are billed in advance on a recurring basis through our
+              payment provider. Monthly message limits apply per plan. You can
+              cancel at any time; cancellation takes effect at the end of the
+              current billing period.
+            </p>
+          </Section>
+
+          <Section title="5. Disclaimer & liability">
+            <p>
+              AutoDM is provided “as is.” We do not control Meta&rsquo;s APIs and
+              are not responsible for changes, downtime, or message delivery on
+              Meta&rsquo;s platforms. To the maximum extent permitted by law, our
+              liability is limited to the amount you paid us in the prior three
+              months.
+            </p>
+          </Section>
+
+          <Section title="6. Changes">
+            <p>
+              We may update these Terms from time to time. Material changes will
+              be communicated by email or in the app, and the “Last updated” date
+              above will reflect the revision.
+            </p>
+          </Section>
+
+          <Section title="7. Contact">
+            <p>
+              Questions about these Terms? Email{" "}
+              <a
+                href="mailto:support@autodm.app"
+                className="text-[var(--wz-accent)] underline underline-offset-2"
+              >
+                support@autodm.app
+              </a>
+              .
+            </p>
+          </Section>
+        </article>
+      </main>
+
+      <MarketingFooter />
+    </>
+  );
+}
