@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { MarketingFooter } from "@/components/marketing/footer";
-
 export const metadata: Metadata = {
   title: "Terms of Service — AutoDM",
   description:
@@ -147,8 +145,6 @@ export default function TermsPage() {
           </Section>
         </article>
       </main>
-
-      <MarketingFooter />
     </>
   );
 }

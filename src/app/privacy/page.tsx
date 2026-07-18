@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { MarketingFooter } from "@/components/marketing/footer";
-
 export const metadata: Metadata = {
   title: "Privacy Policy — AutoDM",
   description:
@@ -303,8 +301,6 @@ export default function PrivacyPage() {
           </Section>
         </article>
       </main>
-
-      <MarketingFooter />
     </>
   );
 }
