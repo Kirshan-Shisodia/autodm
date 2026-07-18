@@ -1,0 +1,255 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+
+  "color": {
+
+    "surface": {
+      "app":     { "$value": "#F7F4EF",              "$type": "color" },
+      "canvas":  { "$value": "#FFFFFF",              "$type": "color" },
+      "card":          { "$value": "#FFFFFF",              "$type": "color" },
+      "chrome":        { "$value": "#FFFFFF",              "$type": "color", "$description": "App shell chrome — sidebar + topbar background" },
+      "chrome-border": { "$value": "#E7E2DA",              "$type": "color", "$description": "1px divider between chrome and cream content" },
+      "muted":         { "$value": "#F1EEE8",              "$type": "color" },
+      "glass":   { "$value": "rgba(255,255,255,0.6)","$type": "color" },
+      "inverse": { "$value": "#23212A",              "$type": "color" }
+    },
+
+    "text": {
+      "primary":   { "$value": "#1A1820", "$type": "color" },
+      "secondary": { "$value": "#4A444F", "$type": "color" },
+      "tertiary":  { "$value": "#6F6A75", "$type": "color" },
+      "muted":     { "$value": "#9A948D", "$type": "color" },
+      "inverse":   { "$value": "#FFFFFF", "$type": "color" },
+      "brand":     { "$value": "#A96B24", "$type": "color" },
+      "danger":    { "$value": "#A02B26", "$type": "color" },
+      "success":   { "$value": "#256B52", "$type": "color" }
+    },
+
+    "border": {
+      "subtle":  { "$value": "#F1EEE8",                   "$type": "color" },
+      "default": { "$value": "#E7E2DA",                   "$type": "color" },
+      "strong":  { "$value": "#D7D0C5",                   "$type": "color" },
+      "focus":   { "$value": "#A96B24",                   "$type": "color" },
+      "glass":   { "$value": "rgba(231, 226, 218, 0.5)",  "$type": "color" }
+    },
+
+    "action": {
+      "primary":         { "$value": "#23212A", "$type": "color" },
+      "primary-hover":   { "$value": "#1A1820", "$type": "color" },
+      "primary-pressed": { "$value": "#0E0C12", "$type": "color" },
+      "danger":          { "$value": "#E0413A", "$type": "color" },
+      "danger-hover":    {
+        "$value": null,
+        "$type": "color",
+        "$description": "TODO: not specified in dls-phase1-foundations.md — references color.red.600 but red.600 hex is absent from §2.2 primitives. Requires Ayoosh input."
+      },
+      "success":         { "$value": "#3EAA83", "$type": "color" }
+    },
+
+    "icon": {
+      "primary":   { "$value": "#3A3540", "$type": "color" },
+      "secondary": { "$value": "#6F6A75", "$type": "color" },
+      "muted":     { "$value": "#D7D0C5", "$type": "color" },
+      "brand":     { "$value": "#23212A", "$type": "color" },
+      "inverse":   { "$value": "#FFFFFF", "$type": "color" }
+    },
+
+    "interaction": {
+      "hover-bg":          { "$value": "#FAF1E6", "$type": "color" },
+      "selected-bg":       { "$value": "#F0DFC3", "$type": "color" },
+      "pressed-bg":        { "$value": "#E3C99E", "$type": "color" },
+      "focus-ring":        { "$value": "#A96B24", "$type": "color" },
+      "focus-ring-offset": { "$value": "#F7F4EF", "$type": "color" }
+    },
+
+    "status": {
+      "warning": {
+        "bg":        { "$value": "#FFF7E8", "$type": "color" },
+        "text":      { "$value": "#8C5418", "$type": "color" },
+        "indicator": { "$value": "#A96B24", "$type": "color" }
+      },
+      "danger": {
+        "bg":        { "$value": "#FDF0EE", "$type": "color" },
+        "text":      { "$value": "#A02B26", "$type": "color" },
+        "indicator": { "$value": "#E0413A", "$type": "color" }
+      },
+      "success": {
+        "bg":        { "$value": "#EAF6F0", "$type": "color" },
+        "text":      { "$value": "#256B52", "$type": "color" },
+        "indicator": { "$value": "#3EAA83", "$type": "color" }
+      },
+      "running": {
+        "bg":        { "$value": "#F7F4FC", "$type": "color" },
+        "text":      { "$value": "#6647C9", "$type": "color" },
+        "indicator": { "$value": "#B9A8F6", "$type": "color" }
+      },
+      "neutral": {
+        "bg":        { "$value": "#F1EEE8", "$type": "color" },
+        "text":      { "$value": "#4A444F", "$type": "color" },
+        "indicator": {
+          "$value": "#9A948D",
+          "$type": "color",
+          "$description": "MEDIUM confidence — inferred from dls-primer.md status table (color.neutral.400). Not listed in §2.3 semantic table. Confirm with Ayoosh."
+        }
+      }
+    },
+
+    "data-viz": {
+      "series": {
+        "1": { "$value": null, "$type": "color", "$description": "TODO: not specified in dls-phase1-foundations.md, requires Ayoosh input. Deferred to Phase 2." },
+        "2": { "$value": null, "$type": "color", "$description": "TODO: not specified in dls-phase1-foundations.md, requires Ayoosh input. Deferred to Phase 2." },
+        "3": { "$value": null, "$type": "color", "$description": "TODO: not specified in dls-phase1-foundations.md, requires Ayoosh input. Deferred to Phase 2." },
+        "4": { "$value": null, "$type": "color", "$description": "TODO: not specified in dls-phase1-foundations.md, requires Ayoosh input. Deferred to Phase 2." },
+        "5": { "$value": null, "$type": "color", "$description": "TODO: not specified in dls-phase1-foundations.md, requires Ayoosh input. Deferred to Phase 2." },
+        "6": { "$value": null, "$type": "color", "$description": "TODO: not specified in dls-phase1-foundations.md, requires Ayoosh input. Deferred to Phase 2." }
+      }
+    }
+
+  },
+
+  "font": {
+
+    "family": {
+      "sans": { "$value": "Geist, ui-sans-serif, system-ui, -apple-system, sans-serif",         "$type": "fontFamily" },
+      "mono": { "$value": "\"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace", "$type": "fontFamily" }
+    },
+
+    "size": {
+      "xs":         { "$value": "11px", "$type": "dimension" },
+      "sm":         { "$value": "12px", "$type": "dimension" },
+      "base":       { "$value": "13px", "$type": "dimension" },
+      "md":         { "$value": "14px", "$type": "dimension" },
+      "lg":         { "$value": "16px", "$type": "dimension" },
+      "xl":         { "$value": "20px", "$type": "dimension" },
+      "2xl":        { "$value": "24px", "$type": "dimension" },
+      "3xl":        { "$value": "32px", "$type": "dimension" },
+      "display-sm": { "$value": "36px", "$type": "dimension" },
+      "display-md": { "$value": "48px", "$type": "dimension" },
+      "display-lg": { "$value": "56px", "$type": "dimension" },
+      "display-xl": { "$value": "64px", "$type": "dimension" }
+    },
+
+    "weight": {
+      "regular":   { "$value": 400, "$type": "fontWeight" },
+      "medium":    { "$value": 500, "$type": "fontWeight" },
+      "semibold":  { "$value": 600, "$type": "fontWeight" },
+      "bold":      { "$value": 700, "$type": "fontWeight" },
+      "extrabold": { "$value": 800, "$type": "fontWeight" }
+    },
+
+    "lineHeight": {
+      "tight":   { "$value": "16px", "$type": "dimension" },
+      "snug":    { "$value": "18px", "$type": "dimension" },
+      "normal":  { "$value": "20px", "$type": "dimension" },
+      "relaxed": { "$value": "24px", "$type": "dimension" },
+      "loose":   { "$value": "32px", "$type": "dimension" },
+      "hero":    { "$value": 1.05,   "$type": "number",    "$description": "Unitless ratio — applied to display hero headlines only (§2.8)" }
+    },
+
+    "letterSpacing": {
+      "normal":          { "$value": "0px",     "$type": "dimension" },
+      "mono":            { "$value": "0.25px",  "$type": "dimension" },
+      "uppercase":       { "$value": "0.55px",  "$type": "dimension" },
+      "heading-card":    { "$value": "-0.16px", "$type": "dimension" },
+      "heading-display": { "$value": "-0.4px",  "$type": "dimension" }
+    }
+
+  },
+
+  "spacing": {
+    "1":  { "$value": "4px",  "$type": "dimension" },
+    "2":  { "$value": "8px",  "$type": "dimension" },
+    "3":  { "$value": "12px", "$type": "dimension" },
+    "4":  { "$value": "16px", "$type": "dimension" },
+    "5":  { "$value": "20px", "$type": "dimension" },
+    "6":  { "$value": "24px", "$type": "dimension" },
+    "8":  { "$value": "32px", "$type": "dimension" },
+    "12": { "$value": "48px", "$type": "dimension" },
+    "16": { "$value": "64px", "$type": "dimension" },
+    "20": { "$value": "80px", "$type": "dimension" }
+  },
+
+  "breakpoint": {
+    "$description": "Responsive breakpoints (DLS §1.6). Drives Tailwind's `screens`. Matches Tailwind defaults except 2xl, intentionally 1440 (design target optimal) rather than the Tailwind default 1536. lg (1024) is the single device line for the responsive auth surface.",
+    "sm":  { "$value": "640px",  "$type": "dimension" },
+    "md":  { "$value": "768px",  "$type": "dimension" },
+    "lg":  { "$value": "1024px", "$type": "dimension" },
+    "xl":  { "$value": "1280px", "$type": "dimension" },
+    "2xl": { "$value": "1440px", "$type": "dimension" }
+  },
+
+  "radius": {
+    "sm":   { "$value": "4px",    "$type": "dimension" },
+    "md":   { "$value": "8px",    "$type": "dimension" },
+    "lg":   { "$value": "12px",   "$type": "dimension" },
+    "xl":   { "$value": "16px",   "$type": "dimension" },
+    "full": { "$value": "9999px", "$type": "dimension" }
+  },
+
+  "shadow": {
+    "modal":    { "$value": "0 16px 48px -8px rgba(26, 24, 32, 0.16)", "$type": "shadow" },
+    "sheet":    { "$value": "-8px 0 32px -4px rgba(26, 24, 32, 0.12)", "$type": "shadow" },
+    "floating": {
+      "$value": "0 8px 24px -4px rgba(26, 24, 32, 0.08)",
+      "$type": "shadow",
+      "$description": "Covers popovers, dropdowns, and toasts (§2.7 Level 2). shadow.card intentionally omitted — TRECOS cards are flat per DLS Rule 2."
+    }
+  },
+
+  "motion": {
+
+    "duration": {
+      "instant": { "$value": "0ms",   "$type": "duration" },
+      "fast":    { "$value": "100ms", "$type": "duration" },
+      "base":    { "$value": "200ms", "$type": "duration" },
+      "slow":    { "$value": "300ms", "$type": "duration" },
+      "slower":  { "$value": "400ms", "$type": "duration" }
+    },
+
+    "easing": {
+      "standard":   { "$value": "cubic-bezier(0.4, 0, 0.2, 1)", "$type": "cubicBezier" },
+      "decelerate": { "$value": "cubic-bezier(0, 0, 0.2, 1)",   "$type": "cubicBezier" },
+      "accelerate": { "$value": "cubic-bezier(0.4, 0, 1, 1)",   "$type": "cubicBezier" },
+      "linear":     { "$value": "linear",                        "$type": "cubicBezier" }
+    }
+
+  },
+
+  "effect": {
+
+    "blur": {
+      "glass":          { "$value": "12px", "$type": "dimension" },
+      "modal-backdrop": { "$value": "4px",  "$type": "dimension" }
+    },
+
+    "gradient": {
+      "aurora":        { "$value": "linear-gradient(135deg, #F7F4EF 0%, #FFE9C7 25%, #FFD4A8 45%, #E3D1FF 70%, #F7F4EF 100%)", "$type": "custom-gradient" },
+      "aurora-subtle": { "$value": "linear-gradient(135deg, #F7F4EF 0%, #FFF3E0 50%, #F7F4EF 100%)",                           "$type": "custom-gradient" },
+      "eyebrow-line":  { "$value": "linear-gradient(90deg, #A96B24 0%, transparent 100%)",                                     "$type": "custom-gradient" },
+      "divider-warm":  { "$value": "linear-gradient(90deg, transparent 0%, #E7E2DA 50%, transparent 100%)",                    "$type": "custom-gradient" }
+    },
+
+    "overlay": {
+      "modal-scrim":  { "$value": "rgba(35, 33, 42, 0.5)",  "$type": "color" },
+      "sheet-scrim":  { "$value": "rgba(35, 33, 42, 0.4)",  "$type": "color" },
+      "tooltip-fade": { "$value": "rgba(35, 33, 42, 0.92)", "$type": "color" }
+    }
+
+  },
+
+  "layout": {
+
+    "shell": {
+      "sidebar-width":              { "$value": "240px",  "$type": "dimension" },
+      "sidebar-collapsed-width":    { "$value": "64px",   "$type": "dimension" },
+      "topbar-height":              { "$value": "56px",   "$type": "dimension" },
+      "page-header-height":         { "$value": "80px",   "$type": "dimension" },
+      "footer-height":              { "$value": "64px",   "$type": "dimension" },
+      "content-max-width":          { "$value": "1440px", "$type": "dimension" },
+      "content-padding-x":          { "$value": "48px",   "$type": "dimension" },
+      "content-padding-x-compact":  { "$value": "32px",   "$type": "dimension" }
+    }
+
+  }
+
+}
