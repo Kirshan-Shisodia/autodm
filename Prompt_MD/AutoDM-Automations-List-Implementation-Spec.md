@@ -24,7 +24,7 @@ The wizard *creates* automations. This page *manages* them — it's the other ha
 
 Same **UI/UX Design Lead** persona as the other two specs. Decisions for this surface:
 
-- **Pure Stripe data surface — no A24 dark plate.** This is a management table, the quietest surface in the app. White, gridded, flat, calm. A24 stays on marketing pages.
+- **Pure HALO data surface — no inverse dark plate.** This is a management table, the quietest surface in the app. White, gridded, flat, calm. The dark plate stays on marketing pages.
 - **Signature element:** the **instant on/off toggle.** Flipping an automation feels immediate — optimistic update, the row state changes the moment you tap, a toast confirms. The product is fundamentally "automations that are on or off," so making that switch feel alive and reliable is the one memorable interaction. Everything else stays utilitarian.
 - **Type detail:** "DMs today" counts and dates render in **IBM Plex Mono, tabular** (consistent with the dashboard).
 
@@ -32,7 +32,7 @@ Same **UI/UX Design Lead** persona as the other two specs. Decisions for this su
 
 ## 2. Design tokens
 
-Reuse the shared token set (wizard spec §2). Stripe light half only — **no dark plate** on this screen. Numerals in mono. The one `--accent-pop` red is reserved for the **Delete** confirmation's destructive button, nowhere else.
+Reuse the shared token set (wizard spec §2). HALO light half only — **no dark plate** on this screen. Numerals in mono. The one `--accent-pop` red is reserved for the **Delete** confirmation's destructive button, nowhere else.
 
 ---
 

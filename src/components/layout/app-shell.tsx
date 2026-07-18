@@ -2,7 +2,7 @@
 
 // The app shell (spec §4): sticky sidebar + topbar that every app page lives
 // inside. Below 1024px the sidebar collapses into a focus-trapped drawer.
-// Stripe-light surface — no dark plate here (spec §2).
+// HALO light surface — no dark plate here (spec §2).
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -228,7 +228,7 @@ export function AppShell({
           <UserMenu user={user} />
         </header>
 
-        <main className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main className="w-full px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {children}
         </main>
       </div>

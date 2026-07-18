@@ -166,30 +166,30 @@
 }
 
 /* ============================================================
-   Automation Wizard — Stripe × A24 design tokens (spec §2)
+   Automation Wizard — HALO design tokens (spec §2)
    Namespaced --wz-* so they never clobber shadcn's tokens.
    Consumed via Tailwind arbitrary values, e.g. bg-[var(--wz-bg-dark)].
    ============================================================ */
 :root {
-  /* surfaces — Stripe light (form body) */
+  /* surfaces — HALO light (form body) */
   --wz-bg: #ffffff;
-  --wz-bg-alt: #f6f9fc; /* page background behind cards */
-  --wz-surface: #ebeef3; /* input fills */
-  --wz-text: #0a2540; /* Stripe deep navy */
-  --wz-text-muted: #425466;
-  --wz-border: #e3e8ee;
+  --wz-bg-alt: #f7f4ef; /* page background behind cards */
+  --wz-surface: #f1eee8; /* input fills */
+  --wz-text: #1a1820; /* HALO ink */
+  --wz-text-muted: #4a444f;
+  --wz-border: #e7e2da;
 
-  /* A24 — dark title plate only */
-  --wz-bg-dark: #000000;
-  --wz-bg-dark-alt: #0a0a0a;
+  /* HALO inverse — dark title plate only */
+  --wz-bg-dark: #23212a;
+  --wz-bg-dark-alt: #1a1820;
   --wz-text-dark: #ffffff;
   --wz-text-dark-muted: rgba(255, 255, 255, 0.72);
-  --wz-accent-warm: #f4ede4; /* warm cream, eyebrow on the plate */
+  --wz-accent-warm: #f7f4ef; /* warm cream, eyebrow on the plate */
 
   /* accents */
-  --wz-accent: #635bff; /* Stripe purple — the ONLY CTA color */
-  --wz-accent-hover: #5048e5;
-  --wz-accent-pop: #d9351c; /* A24 film red — ONE label per viewport */
+  --wz-accent: #23212a; /* HALO action ink — the ONLY CTA color */
+  --wz-accent-hover: #1a1820;
+  --wz-accent-pop: #e0413a; /* HALO danger accent — ONE label per viewport */
 
   /* radii */
   --wz-r-input: 6px;
@@ -197,7 +197,7 @@
   --wz-r-card: 12px;
 
   /* elevation — flat; shadow only for popovers/emoji picker */
-  --wz-shadow-pop: 0 4px 12px rgba(10, 37, 64, 0.08);
+  --wz-shadow-pop: 0 4px 12px rgba(26, 24, 32, 0.08);
 }
 
 /* Display-serif plate title is the one cinematic moment. */
@@ -264,7 +264,7 @@
 }
 @keyframes dash-flash {
   from {
-    background-color: rgba(99, 91, 255, 0.1);
+    background-color: rgba(102, 71, 201, 0.1); /* HALO running status wash */
   }
   to {
     background-color: transparent;

@@ -1,6 +1,6 @@
 "use client";
 
-// The Automations list (list spec §4–§6). A quiet Stripe data surface: white,
+// The Automations list (list spec §4–§6). A quiet HALO data surface: white,
 // gridded, calm. The one alive interaction is the on/off toggle — optimistic,
 // with a confirming toast. Collapses from a table to cards under md (§11).
 

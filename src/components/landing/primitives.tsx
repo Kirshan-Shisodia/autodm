@@ -1,11 +1,11 @@
 // Shared landing primitives (spec §7 content hierarchy, §16 layout strategy).
-// Server-safe — no hooks. Keeps every section on the same 1200px column, the
-// same three type tiers (eyebrow / heading / body) and the same CTA styling.
+// Server-safe — no hooks. Keeps every section full-width with consistent side
+// padding, the same three type tiers (eyebrow / heading / body) and CTA styling.
 
 import { cn } from "@/lib/utils";
 
-// The marketing column is intentionally narrower than the app's 1440 shell —
-// marketing reads better narrow (spec §4).
+// Full-width marketing column — spans the viewport with responsive side padding.
+// Specific text blocks keep their own readability caps (FAQ, pricing, headings).
 export function Container({
   className,
   children,
@@ -14,7 +14,7 @@ export function Container({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn("mx-auto max-w-[1200px] px-6 lg:px-12", className)}>
+    <div className={cn("w-full px-6 lg:px-12", className)}>
       {children}
     </div>
   );

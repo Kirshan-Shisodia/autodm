@@ -27,7 +27,7 @@ Adopt the same **UI/UX Design Lead** persona defined in the wizard spec (§1 the
 
 ### Decisions this agent made for the Dashboard
 
-- **This is the most "Stripe" surface in the app.** The Stripe × A24 reference is explicit: *"Don't drop the grid for full-bleed art on dashboard / data screens,"* and *"Stripe's white wins on app, pricing, docs."* So the Dashboard gets **no A24 dark plate** — unlike the wizard, which earned one cinematic title moment. The Dashboard is quiet, dense, gridded, white. A24's theatricality lives on the marketing/landing pages, not here.
+- **This is the most app-like HALO surface in the app.** The HALO reference is explicit: *"Don't drop the grid for full-bleed art on dashboard / data screens,"* and *"The light surface wins on app, pricing, docs."* So the Dashboard gets **no inverse dark plate** — unlike the wizard, which earned one cinematic title moment. The Dashboard is quiet, dense, gridded, white. The theatrical dark plate lives on the marketing/landing pages, not here.
 - **Signature element:** the **live recent-activity feed** — real DMs streaming in (`@username got your LINK DM · 2s ago`) via Supabase realtime. It's grounded in the subject (the product's whole point is sending DMs; watching them go out live is the proof it works) and it's the one thing this screen is remembered by. Everything else stays calm so it lands.
 - **Type detail that carries the brand:** every metric renders in **mono, tabular figures** (the reference's "Söhne Mono numerals" rule). That's the characterful touch — no display serif anywhere on this surface.
 
@@ -35,7 +35,7 @@ Adopt the same **UI/UX Design Lead** persona defined in the wizard spec (§1 the
 
 ## 2. Design tokens
 
-Use the shared token set from the wizard spec §2 (same `:root` variables, fonts, radii, spacing). For the Dashboard, only the **Stripe light** half is in play — there is **no `--bg-dark` plate** on this screen.
+Use the shared token set from the wizard spec §2 (same `:root` variables, fonts, radii, spacing). For the Dashboard, only the **HALO light** half is in play — there is **no `--bg-dark` plate** on this screen.
 
 Quick reference of what's used here:
 

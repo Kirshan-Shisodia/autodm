@@ -36,11 +36,11 @@ So: build the wizard, click Activate, comment the keyword on the post → the DM
 
 ### 1.2 The design system this agent chose, and why
 
-The reference you were handed is **Stripe × A24** (`stripe-x-a24.md`). Its own arbitration rule is explicit:
+The reference is the **HALO** design system (`halo-tokensv4.json`). Its arbitration rule for app surfaces is explicit:
 
-> *"A24's iconic black background wins on hero plates. Stripe's white wins on app, pricing, docs."* and *"Don't drop the grid for full-bleed art on dashboard / data screens."*
+> *"The dark inverse plate wins on hero moments. The light surface wins on app, pricing, docs."* and *"Don't drop the grid for full-bleed art on dashboard / data screens."*
 
-This wizard **is an app/data surface.** So the faithful reading of the reference is: **the form body is pure Stripe** (white, navy, purple CTA, Söhne, gridded, flat). A24 is not ignored — it is given exactly **one cinematic moment**: a full-bleed **dark title plate** at the top of the wizard, with the display serif, that makes the screen feel like a film poster for half a second before the disciplined Stripe form takes over. A24 red appears **at most once per viewport** (the single "Pro" tag). That split is the remix, and it is mandated by the reference itself — not invented.
+This wizard **is an app/data surface.** So the faithful reading of the reference is: **the form body is the HALO light surface** (white/cream, ink text, dark-ink CTA, gridded, flat). The inverse plate is not ignored — it is given exactly **one cinematic moment**: a full-bleed **dark title plate** at the top of the wizard, with the display serif, that makes the screen feel like a poster for half a second before the disciplined HALO form takes over. The danger accent appears **at most once per viewport** (the single "Pro" tag). That split is the remix, and it is mandated by the reference itself — not invented.
 
 ### 1.3 The signature element
 
@@ -52,29 +52,29 @@ One thing this screen will be remembered by: a **live Instagram-DM phone mockup*
 
 ## 2. Design tokens (drop into `globals.css` / Tailwind theme)
 
-These are the Stripe × A24 values, scoped for this app surface.
+These are the HALO values, scoped for this app surface.
 
 ```css
 :root {
-  /* surfaces — Stripe light (form body) */
+  /* surfaces — HALO light (form body) */
   --bg:           #ffffff;
-  --bg-alt:       #f6f9fc;   /* page background behind cards */
-  --surface:      #ebeef3;   /* input fills */
-  --text:         #0a2540;   /* Stripe deep navy */
-  --text-muted:   #425466;
-  --border:       #e3e8ee;
+  --bg-alt:       #f7f4ef;   /* page background behind cards */
+  --surface:      #f1eee8;   /* input fills */
+  --text:         #1a1820;   /* HALO ink */
+  --text-muted:   #4a444f;
+  --border:       #e7e2da;
 
-  /* A24 — dark title plate only */
-  --bg-dark:      #000000;
-  --bg-dark-alt:  #0a0a0a;
+  /* HALO inverse — dark title plate only */
+  --bg-dark:      #23212a;
+  --bg-dark-alt:  #1a1820;
   --text-dark:    #ffffff;
   --text-dark-muted: rgba(255,255,255,0.72);
-  --accent-warm:  #f4ede4;   /* warm cream, eyebrow text on the plate */
+  --accent-warm:  #f7f4ef;   /* warm cream, eyebrow text on the plate */
 
   /* accents */
-  --accent:       #635bff;   /* Stripe purple — the ONLY CTA color, both modes */
-  --accent-hover: #5048e5;
-  --accent-pop:   #d9351c;   /* A24 film red — ONE label per viewport (the Pro tag) */
+  --accent:       #23212a;   /* HALO action ink — the ONLY CTA color, both modes */
+  --accent-hover: #1a1820;
+  --accent-pop:   #e0413a;   /* HALO danger accent — ONE label per viewport (the Pro tag) */
 
   /* radii */
   --r-input:  6px;
@@ -82,11 +82,11 @@ These are the Stripe × A24 values, scoped for this app surface.
   --r-card:   12px;
 
   /* elevation — flat; shadow only for popovers/emoji picker */
-  --shadow-pop: 0 4px 12px rgba(10,37,64,0.08);
+  --shadow-pop: 0 4px 12px rgba(26,24,32,0.08);
 
   /* type */
-  --font-ui:      "Inter", system-ui, sans-serif;        /* free Söhne stand-in */
-  --font-display: "Fraunces", Georgia, serif;            /* A24-adjacent, free (Google Fonts) */
+  --font-ui:      "Inter", system-ui, sans-serif;        /* clean UI sans */
+  --font-display: "Fraunces", Georgia, serif;            /* cinematic display serif, free (Google Fonts) */
   --font-mono:    "IBM Plex Mono", ui-monospace, monospace; /* numerals: char counts, step numbers, limits */
 }
 ```
