@@ -68,6 +68,17 @@ export function SiteHeader() {
         </ul>
 
         <div className="flex items-center gap-2">
+          {/* Bordered, no fill — reads as a button but stays secondary to the
+              filled "Start free". Left of it, shown from sm up (below sm the
+              mobile menu carries the Log in link). */}
+          <CtaLink
+            href="/login"
+            variant="outline"
+            size="md"
+            className="hidden sm:inline-flex"
+          >
+            Log in
+          </CtaLink>
           <CtaLink href={SIGNUP_HREF} size="md" className="hidden sm:inline-flex">
             Start free
           </CtaLink>
