@@ -28,9 +28,9 @@ function Wordmark({ className }: { className?: string }) {
       <img
         src="/chatpilott-logo.svg"
         alt="ChatPilott"
-        width={120}
-        height={28}
-        className="h-7 w-auto"
+        width={168}
+        height={39}
+        className="h-10 w-auto"
       />
     </Link>
   );

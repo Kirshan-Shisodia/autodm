@@ -20,9 +20,9 @@ export function Logo({ className }: { className?: string }) {
       <img
         src="/chatpilott-logo.svg"
         alt="ChatPilott"
-        width={120}
-        height={28}
-        className="h-7 w-auto"
+        width={170}
+        height={40}
+        className="h-12 w-auto"
       />
     </Link>
   );

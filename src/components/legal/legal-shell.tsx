@@ -31,9 +31,9 @@ export function LegalShell({
             <img
               src="/chatpilott-logo.svg"
               alt="ChatPilott"
-              width={124}
-              height={29}
-              className="h-7 w-auto"
+              width={154}
+              height={36}
+              className="h-8 w-auto"
             />
           </Link>
           <Link
