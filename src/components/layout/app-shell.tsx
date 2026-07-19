@@ -30,20 +30,18 @@ function SidebarNav({
   onNavigate?: () => void;
 }) {
   return (
-    <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+    <nav className="flex-1 space-y-7 overflow-y-auto px-3 py-5">
       {NAV_GROUPS.map((group) => (
         <div key={group.heading}>
-          <div className="mb-1 flex items-center gap-2 px-3">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--wz-text-muted)]">
-              {group.heading}
-            </span>
-            {group.pro && (
-              <span className="wz-font-mono rounded bg-[var(--wz-surface)] px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-[var(--wz-text-muted)]">
-                Pro
-              </span>
+          <h3
+            className={cn(
+              "mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.09em]",
+              group.pro ? "text-brand" : "text-ink-muted",
             )}
-          </div>
-          <ul className="space-y-0.5">
+          >
+            {group.heading}
+          </h3>
+          <ul className="space-y-1">
             {group.items.map((item) => {
               const href = resolveHref(item, plan);
               const active = isActive(pathname, item.href);
@@ -55,13 +53,18 @@ function SidebarNav({
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex min-h-[40px] items-center gap-3 rounded-md border-l-2 px-3 text-sm transition-colors duration-100 [transition-timing-function:var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                      "flex h-10 items-center gap-3 rounded-lg px-3 text-sm transition-colors duration-100 [transition-timing-function:var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset",
                       active
-                        ? "border-brand bg-selected-bg font-semibold text-brand"
-                        : "border-transparent text-[var(--wz-text-muted)] hover:bg-hover-bg hover:text-[var(--wz-text)]",
+                        ? "bg-selected-bg font-medium text-brand"
+                        : "font-medium text-[var(--wz-text-muted)] hover:bg-hover-bg hover:text-[var(--wz-text)]",
                     )}
                   >
-                    <Icon className="size-4 shrink-0" />
+                    <Icon
+                      className={cn(
+                        "size-[18px] shrink-0",
+                        active ? "text-brand" : "text-ink-muted",
+                      )}
+                    />
                     {item.label}
                   </Link>
                 </li>
@@ -108,9 +111,9 @@ function Brand() {
       <img
         src="/chatpilott-logo.svg"
         alt="ChatPilott"
-        width={120}
-        height={26}
-        className="h-6 w-auto"
+        width={170}
+        height={40}
+        className="h-12 w-auto"
       />
     </Link>
   );
