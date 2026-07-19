@@ -30,10 +30,10 @@ export function TrustQuote() {
 
   return (
     <figure key={i} className="landing-enter max-w-sm">
-      <blockquote className="text-[16px] leading-relaxed text-ink-inverse/90">
+      <blockquote className="text-[16px] leading-relaxed text-ink">
         &ldquo;{quote}&rdquo;
       </blockquote>
-      <figcaption className="font-geist-mono mt-2 text-[12px] text-ink-inverse/60">
+      <figcaption className="font-geist-mono mt-2 text-[12px] text-ink-tertiary">
         {who}
       </figcaption>
     </figure>
