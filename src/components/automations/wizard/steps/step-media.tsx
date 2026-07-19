@@ -1,13 +1,17 @@
 "use client";
 
-// Step 2 — Select target media (spec §5). Fetches the creator's recent media
-// from our server route (token decrypted server-side, cached 5 min). The
-// "All posts" card selects media_id = null.
+// Step 2 — Media (spec §6). Fetches the creator's recent media from our server
+// route (token decrypted server-side, cached 5 min). The pinned "All posts"
+// card selects media_id = null. Loading = shimmer skeletons; empty/error copy
+// per spec §9.
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import { Check, Images, RefreshCw } from "lucide-react";
 
-import { Skeleton } from "@/components/ui/skeleton";
+import { cardContainer, cardItem } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 import type { IgMedia } from "@/lib/meta";
 import type { WizardState } from "@/lib/automations/wizard";
 
@@ -18,6 +22,7 @@ export function StepMedia({
   state: WizardState;
   set: (patch: Partial<WizardState>) => void;
 }) {
+  const reduce = useReducedMotion();
   const [media, setMedia] = useState<IgMedia[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,9 +41,7 @@ export function StepMedia({
       const body = (await res.json()) as { media: IgMedia[] };
       setMedia(body.media);
     } catch {
-      setError(
-        "We couldn't load your posts right now. Check your connection and try again.",
-      );
+      setError("Couldn't load your posts.");
     } finally {
       setLoading(false);
     }
@@ -50,65 +53,78 @@ export function StepMedia({
     load();
   }, [load]);
 
-  function pickAll() {
-    set({ media_id: null, media_url: null });
-  }
-  function pick(m: IgMedia) {
-    set({ media_id: m.id, media_url: m.thumbnail_url ?? m.media_url });
-  }
-
   const allSelected = state.media_id === null;
+  const isEmpty = !loading && !error && (media?.length ?? 0) === 0;
 
   return (
     <div>
       {error && (
-        <div className="mb-4 flex items-center justify-between gap-3 rounded-[var(--wz-r-card)] border border-[var(--wz-accent-pop)]/30 bg-[var(--wz-accent-pop)]/5 px-4 py-3 text-sm text-[var(--wz-text)]">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#f3d9d6] bg-danger-bg px-4 py-3 text-sm text-danger">
           <span>{error}</span>
-          <button
-            type="button"
-            onClick={load}
-            className="inline-flex items-center gap-1.5 font-medium text-[var(--wz-accent)]"
-          >
-            <RefreshCw className="size-4" /> Retry
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={load}
+              className="inline-flex items-center gap-1.5 font-medium text-ink hover:underline"
+            >
+              <RefreshCw className="size-4" /> Retry
+            </button>
+            <Link
+              href="/accounts"
+              className="font-medium text-brand hover:underline"
+            >
+              Reconnect
+            </Link>
+          </div>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {/* All posts card, always first */}
-        <button
+      <motion.div
+        role="radiogroup"
+        aria-label="Content to watch"
+        variants={reduce ? undefined : cardContainer}
+        initial={reduce ? undefined : "hidden"}
+        animate={reduce ? undefined : "show"}
+        className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
+      >
+        {/* All posts, pinned first */}
+        <motion.button
+          variants={reduce ? undefined : cardItem}
           type="button"
           role="radio"
           aria-checked={allSelected}
-          onClick={pickAll}
-          className={[
-            "relative flex aspect-square min-h-[44px] flex-col items-center justify-center gap-1.5 rounded-[var(--wz-r-card)] border bg-white p-2 text-center transition-colors",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wz-accent)]",
+          onClick={() => set({ media_id: null, media_url: null })}
+          className={cn(
+            "relative flex aspect-square min-h-11 flex-col items-center justify-center gap-1.5 rounded-xl border p-2 text-center transition-colors",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-surface-app",
             allSelected
-              ? "border-transparent ring-2 ring-inset ring-[var(--wz-accent)]"
-              : "border-[var(--wz-border)] hover:border-[var(--wz-accent)]/40",
-          ].join(" ")}
+              ? "border-[1.5px] border-border-focus bg-selected-bg"
+              : "border-border-default bg-surface-card hover:border-border-strong",
+          )}
         >
           <Images
-            className={`size-6 ${allSelected ? "text-[var(--wz-accent)]" : "text-[var(--wz-text-muted)]"}`}
+            className={cn("size-6", allSelected ? "text-brand" : "text-ink-muted")}
           />
           <span
-            className={`text-[12px] font-medium ${allSelected ? "text-[var(--wz-accent)]" : "text-[var(--wz-text)]"}`}
+            className={cn(
+              "text-[12px] font-medium",
+              allSelected ? "text-brand" : "text-ink",
+            )}
           >
             All posts
           </span>
           {allSelected && (
-            <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-[var(--wz-accent)] text-white">
+            <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-action text-white">
               <Check className="size-3.5" />
             </span>
           )}
-        </button>
+        </motion.button>
 
         {loading &&
           Array.from({ length: 9 }).map((_, i) => (
-            <Skeleton
+            <div
               key={i}
-              className="aspect-square rounded-[var(--wz-r-card)]"
+              className="wz-shimmer aspect-square rounded-xl bg-surface-muted"
             />
           ))}
 
@@ -117,20 +133,23 @@ export function StepMedia({
             const selected = state.media_id === m.id;
             const src = m.thumbnail_url ?? m.media_url ?? "";
             return (
-              <button
+              <motion.button
                 key={m.id}
+                variants={reduce ? undefined : cardItem}
                 type="button"
                 role="radio"
                 aria-checked={selected}
-                onClick={() => pick(m)}
+                onClick={() =>
+                  set({ media_id: m.id, media_url: m.thumbnail_url ?? m.media_url })
+                }
                 title={m.caption ?? undefined}
-                className={[
-                  "group relative aspect-square min-h-[44px] overflow-hidden rounded-[var(--wz-r-card)] border transition-colors",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wz-accent)]",
+                className={cn(
+                  "relative aspect-square min-h-11 overflow-hidden rounded-xl border transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-surface-app",
                   selected
-                    ? "border-transparent ring-2 ring-inset ring-[var(--wz-accent)]"
-                    : "border-[var(--wz-border)] hover:border-[var(--wz-accent)]/40",
-                ].join(" ")}
+                    ? "border-[1.5px] border-border-focus"
+                    : "border-border-default hover:border-border-strong",
+                )}
               >
                 {src ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -141,25 +160,28 @@ export function StepMedia({
                     loading="lazy"
                   />
                 ) : (
-                  <div className="flex size-full items-center justify-center bg-[var(--wz-surface)] text-[10px] text-[var(--wz-text-muted)]">
+                  <div className="flex size-full items-center justify-center bg-surface-muted text-[10px] text-ink-muted">
                     No preview
                   </div>
                 )}
                 {selected && (
-                  <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-[var(--wz-accent)] text-white">
+                  <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-action text-white">
                     <Check className="size-3.5" />
                   </span>
                 )}
-              </button>
+              </motion.button>
             );
           })}
-      </div>
+      </motion.div>
 
-      {!loading && !error && (media?.length ?? 0) === 0 && (
-        <p className="mt-4 text-sm text-[var(--wz-text-muted)]">
-          No posts found on this account yet. Post something on Instagram, then
-          refresh.
+      {isEmpty && (
+        <p className="mt-4 text-sm text-ink-tertiary">
+          No posts yet — publish on Instagram, or choose{" "}
+          <span className="font-medium text-ink">All posts</span>.
         </p>
+      )}
+      {!loading && !error && (
+        <p className="mt-3 text-xs text-ink-muted">recent 25 only</p>
       )}
     </div>
   );

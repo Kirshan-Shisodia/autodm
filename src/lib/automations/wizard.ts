@@ -39,57 +39,75 @@ export const STEPS: { n: StepNum; key: string; label: string; pro?: boolean }[] 
     { n: 6, key: "review", label: "Review" },
   ];
 
+// Step headings (spec §6). Shown at the top of the form column, per step.
 export const STEP_TITLES: Record<StepNum, string> = {
-  1: "Pick an automation",
-  2: "Choose a post",
+  1: "What should trigger the DM?",
+  2: "Which content should this watch?",
   3: "Set the trigger",
-  4: "Write the message",
-  5: "Comment reply",
+  4: "Write your DM",
+  5: "Public comment reply",
   6: "Review & activate",
 };
 
-// The six type cards. Only `enabled` ones are selectable in the MVP (spec §5).
+// Step subtitles (spec §6). Secondary line under each heading.
+export const STEP_SUBTITLES: Record<StepNum, string> = {
+  1: "Pick one — you can create more automations later.",
+  2: "Watch every post, or scope this to a single post or reel.",
+  3: "Decide which comments fire the DM.",
+  4: "Write the DM your follower receives. The preview updates as you type.",
+  5: "Optionally reply under the comment so it looks active to everyone.",
+  6: "One last look. Activate when it's ready.",
+};
+
+// The six type cards (copy verbatim, spec §6 Step 1). Only `enabled` ones are
+// selectable in the MVP; `pro` cards render a PRO badge and, when disabled,
+// open an upgrade nudge instead of selecting.
 export const TYPE_CARDS: {
   type: AutomationType | string;
   title: string;
   description: string;
   enabled: boolean;
+  pro?: boolean;
 }[] = [
   {
     type: "post",
-    title: "Post",
-    description: "Reply when someone comments on a feed post.",
+    title: "Post comments",
+    description: "DM anyone who comments a trigger word on a post",
     enabled: true,
   },
   {
     type: "reel",
-    title: "Reel",
-    description: "Reply when someone comments on a reel.",
+    title: "Reel comments",
+    description: "Same, for reels — where comment volume peaks",
     enabled: true,
   },
   {
     type: "story_reply",
-    title: "Story Reply",
-    description: "Reply when someone responds to your story.",
+    title: "Story replies",
+    description: "Answer story replies instantly — warmest leads",
     enabled: false,
+    pro: true,
   },
   {
     type: "story_mention",
-    title: "Story Mention",
-    description: "Reply when someone mentions you in their story.",
+    title: "Story mentions",
+    description: "Auto-thank anyone who mentions you (max 1/person/week)",
     enabled: false,
+    pro: true,
   },
   {
     type: "facebook_post",
-    title: "Facebook Comment",
-    description: "Reply to comments on your Facebook posts.",
+    title: "Facebook Page comments",
+    description: "Same engine on your Facebook Page posts",
     enabled: false,
+    pro: true,
   },
   {
     type: "inbox",
-    title: "Inbox",
-    description: "Reply to incoming direct messages.",
+    title: "Inbox keywords",
+    description: "'PRICE' DMs at 2 AM get instant answers",
     enabled: false,
+    pro: true,
   },
 ];
 

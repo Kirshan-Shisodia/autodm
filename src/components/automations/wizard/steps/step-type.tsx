@@ -1,101 +1,131 @@
 "use client";
 
-// Step 1 — Choose type (spec §5). Grid of 6 radio cards; only Post and Reel
-// are selectable in the MVP. The single A24-red "Pro" tag appears once.
+// Step 1 — Type (spec §6). A 2×3 card grid acting as a radiogroup. Free plans
+// can select the two enabled types; PRO cards show a badge and open an upgrade
+// nudge instead of selecting (spec §6 branch — plan gate).
 
-import {
-  Image as ImageIcon,
-  Film,
-  MessageCircle,
-  AtSign,
-  Megaphone,
-  Inbox,
-  Check,
-} from "lucide-react";
+import { useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import Link from "next/link";
+import { Check, Lock, Sparkles } from "lucide-react";
 
 import {
   TYPE_CARDS,
   type AutomationType,
+  type Plan,
   type WizardState,
 } from "@/lib/automations/wizard";
-
-const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  post: ImageIcon,
-  reel: Film,
-  story_reply: MessageCircle,
-  story_mention: AtSign,
-  facebook_post: Megaphone,
-  inbox: Inbox,
-};
+import { cardContainer, cardItem } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 
 export function StepType({
   state,
   set,
+  plan,
 }: {
   state: WizardState;
   set: (patch: Partial<WizardState>) => void;
+  plan: Plan;
 }) {
-  // The "Pro" tag is rendered at most once per viewport (A24 single-label rule):
-  // on the first disabled card only.
-  const firstDisabledType = TYPE_CARDS.find((c) => !c.enabled)?.type;
+  const reduce = useReducedMotion();
+  const [nudge, setNudge] = useState<string | null>(null);
+  const isFree = plan === "free";
+
+  function choose(card: (typeof TYPE_CARDS)[number]) {
+    if (card.enabled) {
+      setNudge(null);
+      set({ type: card.type as AutomationType });
+      return;
+    }
+    // Locked / coming-soon type — surface the upgrade nudge, don't select.
+    setNudge((n) => (n === card.type ? null : card.type));
+  }
 
   return (
-    <fieldset>
-      <legend className="sr-only">Choose an automation type</legend>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {TYPE_CARDS.map((card) => {
-          const Icon = ICONS[card.type] ?? ImageIcon;
-          const selected = card.enabled && state.type === card.type;
-          const showPro = card.type === firstDisabledType;
-          return (
+    <motion.div
+      role="radiogroup"
+      aria-label="Automation type"
+      variants={reduce ? undefined : cardContainer}
+      initial={reduce ? undefined : "hidden"}
+      animate={reduce ? undefined : "show"}
+      className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+    >
+      {TYPE_CARDS.map((card) => {
+        const selected = card.enabled && state.type === card.type;
+        const locked = !card.enabled;
+        return (
+          <motion.div
+            key={card.type}
+            variants={reduce ? undefined : cardItem}
+            className="relative"
+          >
             <button
-              key={card.type}
               type="button"
               role="radio"
               aria-checked={selected}
-              aria-disabled={!card.enabled}
-              disabled={!card.enabled}
-              onClick={() =>
-                card.enabled && set({ type: card.type as AutomationType })
-              }
-              className={[
-                "relative flex min-h-[44px] flex-col items-start gap-2 rounded-[var(--wz-r-card)] border bg-white p-4 text-left transition-colors",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wz-accent)]",
-                card.enabled
-                  ? "cursor-pointer hover:border-[var(--wz-accent)]/40"
-                  : "cursor-not-allowed opacity-60",
+              onClick={() => choose(card)}
+              className={cn(
+                "group relative flex w-full flex-col items-start gap-1 rounded-2xl border p-5 text-left transition-all duration-100 [transition-timing-function:var(--ease-standard)]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-surface-app",
+                "hover:-translate-y-0.5",
                 selected
-                  ? "border-transparent ring-2 ring-inset ring-[var(--wz-accent)]"
-                  : "border-[var(--wz-border)]",
-              ].join(" ")}
+                  ? "border-[1.5px] border-border-focus bg-selected-bg"
+                  : "border-border-default bg-surface-card hover:border-border-strong",
+                locked && "opacity-95",
+              )}
             >
-              <span className="flex w-full items-center justify-between">
-                <Icon
-                  className={`size-5 ${selected ? "text-[var(--wz-accent)]" : "text-[var(--wz-text-muted)]"}`}
-                />
-                {selected && (
-                  <span className="flex size-5 items-center justify-center rounded-full bg-[var(--wz-accent)] text-white">
+              <div className="flex w-full items-center justify-between gap-2">
+                <span className="text-base font-bold text-ink">
+                  {card.title}
+                </span>
+                {card.pro ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#f7f4fc] px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#6647c9]">
+                    Pro
+                  </span>
+                ) : selected ? (
+                  <span className="flex size-5 items-center justify-center rounded-full bg-action text-white">
                     <Check className="size-3.5" />
                   </span>
-                )}
-                {showPro && (
-                  <span className="wz-font-mono rounded-[4px] border border-[var(--wz-accent-pop)] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--wz-accent-pop)]">
-                    Pro · Soon
-                  </span>
-                )}
-              </span>
-              <span
-                className={`text-sm font-semibold ${selected ? "text-[var(--wz-accent)]" : "text-[var(--wz-text)]"}`}
-              >
-                {card.title}
-              </span>
-              <span className="text-[13px] leading-snug text-[var(--wz-text-muted)]">
+                ) : null}
+              </div>
+              <span className="text-sm text-ink-secondary">
                 {card.description}
               </span>
+              {locked && (
+                <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted">
+                  <Lock className="size-3" /> Coming soon
+                </span>
+              )}
             </button>
-          );
-        })}
-      </div>
-    </fieldset>
+
+            {/* Upgrade nudge popover (spec §6) */}
+            {nudge === card.type && (
+              <div
+                role="dialog"
+                className="absolute left-4 right-4 top-full z-20 mt-2 rounded-xl border border-border-default bg-surface-canvas p-4 shadow-[var(--shadow-floating)]"
+              >
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+                  <Sparkles className="size-4 text-[#6647c9]" />
+                  {isFree ? "Upgrade to unlock" : "Coming soon"}
+                </p>
+                <p className="mt-1 text-xs text-ink-secondary">
+                  {isFree
+                    ? "This trigger is part of Pro. Upgrade to turn it on."
+                    : "We're finishing this trigger — it'll light up here soon."}
+                </p>
+                {isFree && (
+                  <Link
+                    href="/billing?upgrade=pro"
+                    className="mt-3 inline-flex items-center rounded-lg bg-action px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-action-hover"
+                  >
+                    See Pro plans
+                  </Link>
+                )}
+              </div>
+            )}
+          </motion.div>
+        );
+      })}
+    </motion.div>
   );
 }

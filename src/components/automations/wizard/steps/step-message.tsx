@@ -1,8 +1,9 @@
 "use client";
 
-// Step 4 — Compose DM (spec §5, the signature step). Textarea with a mono
-// character count, emoji popover, and an "Insert link" action that drops the
-// {LINK} placeholder into the message and captures the destination URL.
+// Step 4 — Message (spec §6, the signature step). Textarea with an n/1000
+// counter, emoji popover, and an "Insert {LINK}" action that drops the
+// placeholder in. Typing hard-stops at the limit. When {LINK} is present the
+// destination URL field is required (validated on Activate, server-side too).
 
 import { useRef } from "react";
 import { Link as LinkIcon } from "lucide-react";
@@ -13,6 +14,7 @@ import {
   LINK_PLACEHOLDER,
   type WizardState,
 } from "@/lib/automations/wizard";
+import { cn } from "@/lib/utils";
 
 export function StepMessage({
   state,
@@ -24,82 +26,78 @@ export function StepMessage({
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   const count = state.dm_message.length;
-  const over = count > DM_MAX;
+  const nearLimit = count > DM_MAX * 0.9;
 
   function insertAtCursor(text: string) {
     const ta = taRef.current;
     if (!ta) {
-      set({ dm_message: state.dm_message + text });
+      set({ dm_message: (state.dm_message + text).slice(0, DM_MAX) });
       return;
     }
     const start = ta.selectionStart ?? state.dm_message.length;
     const end = ta.selectionEnd ?? state.dm_message.length;
-    const next =
-      state.dm_message.slice(0, start) + text + state.dm_message.slice(end);
+    const next = (
+      state.dm_message.slice(0, start) +
+      text +
+      state.dm_message.slice(end)
+    ).slice(0, DM_MAX);
     set({ dm_message: next });
-    // restore caret after the inserted text
     requestAnimationFrame(() => {
       ta.focus();
-      const pos = start + text.length;
+      const pos = Math.min(start + text.length, DM_MAX);
       ta.setSelectionRange(pos, pos);
     });
   }
 
-  function insertLink() {
-    if (!state.dm_message.includes(LINK_PLACEHOLDER)) {
-      insertAtCursor(` ${LINK_PLACEHOLDER}`);
-    }
-  }
-
   const hasPlaceholder = state.dm_message.includes(LINK_PLACEHOLDER);
+  const linkMissing = hasPlaceholder && state.dm_link.trim() === "";
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-white">
+      <div className="overflow-hidden rounded-xl border border-border-default bg-surface-canvas focus-within:border-border-focus focus-within:ring-2 focus-within:ring-brand/30">
         <textarea
           ref={taRef}
           value={state.dm_message}
-          onChange={(e) => set({ dm_message: e.target.value })}
+          onChange={(e) => set({ dm_message: e.target.value.slice(0, DM_MAX) })}
           rows={6}
+          maxLength={DM_MAX}
           placeholder="Hey! Thanks for commenting 🙌 Here's the link I promised:"
           aria-label="Direct message"
-          aria-invalid={over}
-          className="w-full resize-none rounded-t-[var(--wz-r-card)] bg-transparent p-3 text-sm text-[var(--wz-text)] placeholder:text-[var(--wz-text-muted)] focus:outline-none"
+          className="w-full resize-none bg-transparent p-3.5 text-sm leading-relaxed text-ink placeholder:text-ink-muted focus:outline-none"
         />
-        {/* Toolbar — pinned to the textarea so it stays reachable on mobile. */}
-        <div className="flex items-center justify-between gap-2 border-t border-[var(--wz-border)] px-2 py-1.5">
+        {/* Toolbar */}
+        <div className="flex items-center justify-between gap-2 border-t border-border-default px-2 py-1.5">
           <div className="flex items-center gap-1">
             <EmojiPopover onPick={(e) => insertAtCursor(e)} />
             <button
               type="button"
-              onClick={insertLink}
+              onClick={() =>
+                !hasPlaceholder && insertAtCursor(` ${LINK_PLACEHOLDER}`)
+              }
               disabled={hasPlaceholder}
-              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-[var(--wz-r-button)] px-2.5 text-sm font-medium text-[var(--wz-text)] hover:bg-[var(--wz-surface)] disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wz-accent)]"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-ink transition-colors hover:bg-hover-bg disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
-              <LinkIcon className="size-4" /> Insert link
+              <LinkIcon className="size-4" /> Insert {"{LINK}"}
             </button>
           </div>
           <span
-            className={`wz-font-mono text-xs ${over ? "text-[var(--wz-accent-pop)]" : "text-[var(--wz-text-muted)]"}`}
+            className={cn(
+              "font-mono text-xs tabular-nums",
+              count >= DM_MAX
+                ? "text-danger"
+                : nearLimit
+                  ? "text-warning-text"
+                  : "text-ink-muted",
+            )}
           >
             {count.toLocaleString()} / {DM_MAX.toLocaleString()}
           </span>
         </div>
       </div>
 
-      {over && (
-        <p className="wz-font-mono text-xs text-[var(--wz-accent-pop)]">
-          {count.toLocaleString()} / {DM_MAX.toLocaleString()} — trim{" "}
-          {(count - DM_MAX).toLocaleString()} characters.
-        </p>
-      )}
-
       {hasPlaceholder && (
         <div className="space-y-1.5">
-          <label
-            htmlFor="dm_link"
-            className="text-sm font-medium text-[var(--wz-text)]"
-          >
+          <label htmlFor="dm_link" className="text-sm font-medium text-ink">
             Link destination
           </label>
           <input
@@ -108,11 +106,19 @@ export function StepMessage({
             inputMode="url"
             value={state.dm_link}
             onChange={(e) => set({ dm_link: e.target.value })}
+            aria-invalid={linkMissing}
             placeholder="https://yourstore.com/offer"
-            className="w-full rounded-[var(--wz-r-input)] border border-[var(--wz-border)] bg-[var(--wz-surface)] p-2.5 text-sm text-[var(--wz-text)] placeholder:text-[var(--wz-text-muted)] focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--wz-accent)]"
+            className={cn(
+              "w-full rounded-lg border bg-surface-canvas p-2.5 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-brand/30",
+              linkMissing
+                ? "border-danger focus:border-danger"
+                : "border-border-default focus:border-border-focus",
+            )}
           />
-          <p className="text-xs text-[var(--wz-text-muted)]">
-            We&apos;ll turn this into a short, trackable link in the message.
+          <p className="text-xs text-ink-muted">
+            {linkMissing
+              ? "Add a destination — {LINK} needs somewhere to point."
+              : "We'll turn this into a short, trackable link in the message."}
           </p>
         </div>
       )}

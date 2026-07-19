@@ -292,6 +292,33 @@
   }
 }
 
+/* Wizard media skeletons (spec §7.10): an aurora-subtle highlight sweeps across
+   the muted placeholder tiles, ~1.2s linear loop. Reduced motion → flat tile. */
+.wz-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wz-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 243, 224, 0.9) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: wz-shimmer-sweep 1.2s linear infinite;
+  }
+}
+@keyframes wz-shimmer-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
 /* ============================================================
    Dashboard — recent-activity feed highlight (spec §7).
    New rows fade a subtle purple wash on arrival; reduced motion
