@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
   if (!code || !state || state !== cookieState) {
     return fail("invalid_state");
   }
-  // 2. Session check — the uid cookie tells us which AutoDM user this is for
+  // 2. Session check — the uid cookie tells us which ChatPilott user this is for
   if (!uid) {
     return fail("session_lost");
   }

@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ?? "https://autodm.app",
   ),
-  title: "AutoDM",
+  title: "ChatPilott",
   description: "Automate your Instagram DMs.",
 };
 

@@ -11,9 +11,9 @@ import { ClosingCtaSection } from "@/components/marketing/closing-cta-section";
 import { SiteFooter } from "@/components/marketing/site-footer";
 
 export const metadata: Metadata = {
-  title: "AutoDM — Turn Instagram comments into DMs, automatically",
+  title: "ChatPilott — Turn Instagram comments into DMs, automatically",
   description:
-    "AutoDM watches your Instagram posts and reels for the keywords you choose and instantly DMs the link, guide, or offer to everyone who comments.",
+    "ChatPilott watches your Instagram posts and reels for the keywords you choose and instantly DMs the link, guide, or offer to everyone who comments.",
   alternates: { canonical: "/" },
 };
 

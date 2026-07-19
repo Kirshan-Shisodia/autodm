@@ -7,7 +7,7 @@ import Link from "next/link";
 export function LegalMicrocopy({ verb = "continuing" }: { verb?: string }) {
   return (
     <p className="text-[11px] leading-[16px] text-ink-tertiary">
-      By {verb}, you agree to AutoDM&rsquo;s{" "}
+      By {verb}, you agree to ChatPilott&rsquo;s{" "}
       <Link
         href="/terms"
         className="text-brand underline underline-offset-2 hover:text-ink"

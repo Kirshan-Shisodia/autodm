@@ -24,9 +24,17 @@ export function LegalShell({
         <div className="mx-auto flex max-w-[860px] items-center justify-between px-6 py-5">
           <Link
             href="/"
-            className="text-xl font-bold tracking-tight text-ink transition-colors hover:text-brand"
+            aria-label="ChatPilott home"
+            className="inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
-            AutoDM
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/chatpilott-logo.svg"
+              alt="ChatPilott"
+              width={124}
+              height={29}
+              className="h-7 w-auto"
+            />
           </Link>
           <Link
             href="/"

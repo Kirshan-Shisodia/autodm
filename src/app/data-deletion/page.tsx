@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { LegalShell, LegalSection } from "@/components/legal/legal-shell";
 
 export const metadata: Metadata = {
-  title: "Data Deletion — AutoDM",
+  title: "Data Deletion — ChatPilott",
   description:
-    "How to delete your AutoDM account and the Instagram data we hold, including data accessed through Meta's official APIs.",
+    "How to delete your ChatPilott account and the Instagram data we hold, including data accessed through Meta's official APIs.",
   alternates: { canonical: "/data-deletion" },
 };
 
@@ -23,18 +23,18 @@ export default function DataDeletionPage() {
       lastUpdated={LAST_UPDATED}
       intro={
         <p>
-          You can delete your AutoDM account and the Instagram data we hold at
+          You can delete your ChatPilott account and the Instagram data we hold at
           any time. This page explains exactly how, and what happens when you
-          do. AutoDM accesses Instagram data only through Meta&rsquo;s official
-          APIs, and honors deletion requests from both AutoDM and Meta.
+          do. ChatPilott accesses Instagram data only through Meta&rsquo;s official
+          APIs, and honors deletion requests from both ChatPilott and Meta.
         </p>
       }
     >
-      <LegalSection id="in-app" title="1. Delete your account in AutoDM">
+      <LegalSection id="in-app" title="1. Delete your account in ChatPilott">
         <p>
           Sign in and open{" "}
           <strong className="text-ink">Settings → Delete account</strong>. This
-          permanently removes your AutoDM account, your automations, your stored
+          permanently removes your ChatPilott account, your automations, your stored
           Instagram access tokens, and all associated comment and message logs.
         </p>
       </LegalSection>
@@ -42,7 +42,7 @@ export default function DataDeletionPage() {
       <LegalSection id="disconnect" title="2. Disconnect an Instagram account">
         <p>
           To remove the data tied to a single connected Instagram account
-          without deleting your whole AutoDM account, open{" "}
+          without deleting your whole ChatPilott account, open{" "}
           <strong className="text-ink">Accounts</strong> and choose{" "}
           <strong className="text-ink">Disconnect</strong>. We delete that
           account&rsquo;s access tokens and stop processing its comments
@@ -50,20 +50,20 @@ export default function DataDeletionPage() {
         </p>
       </LegalSection>
 
-      <LegalSection id="remove-from-meta" title="3. Remove AutoDM from Instagram or Facebook">
+      <LegalSection id="remove-from-meta" title="3. Remove ChatPilott from Instagram or Facebook">
         <p>
-          You can revoke AutoDM&rsquo;s access directly from Meta:
+          You can revoke ChatPilott&rsquo;s access directly from Meta:
         </p>
         <ul className="list-disc space-y-2 pl-6">
           <li>
             <strong className="text-ink">Instagram:</strong> Settings →
             Website permissions → Apps and websites → remove{" "}
-            <strong className="text-ink">AutoDM</strong>.
+            <strong className="text-ink">ChatPilott</strong>.
           </li>
           <li>
             <strong className="text-ink">Facebook:</strong> Settings &amp;
             privacy → Settings → Business integrations → remove{" "}
-            <strong className="text-ink">AutoDM</strong>.
+            <strong className="text-ink">ChatPilott</strong>.
           </li>
         </ul>
         <p>
@@ -98,7 +98,7 @@ export default function DataDeletionPage() {
           <li>Your Instagram access tokens.</li>
           <li>Comment text and commenter Instagram user IDs.</li>
           <li>Media IDs for the posts and reels you automated.</li>
-          <li>The messages AutoDM sent on your behalf.</li>
+          <li>The messages ChatPilott sent on your behalf.</li>
           <li>Your account profile and captured leads.</li>
         </ul>
         <p>

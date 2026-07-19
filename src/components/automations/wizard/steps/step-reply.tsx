@@ -33,7 +33,7 @@ export function StepReply({
               Auto-reply to the comment, too
             </p>
             <p className="text-sm text-[var(--wz-text-muted)]">
-              On Pro, AutoDM also posts a public reply under the comment (&ldquo;Just
+              On Pro, ChatPilott also posts a public reply under the comment (&ldquo;Just
               sent it your way! 📩&rdquo;) so others see it working. You can skip this
               and activate now.
             </p>

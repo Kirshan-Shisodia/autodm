@@ -1,0 +1,14 @@
+<svg width="600" height="140" viewBox="0 0 600 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="g" x1="12" y1="10" x2="86" y2="90" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#C68A3E"></stop><stop offset="1" stop-color="#A96B24"></stop></linearGradient></defs>
+  <g transform="translate(6 24)">
+    <path d="M10 46 L90 10 C93 9 94 12 92 14 L52 58 Z" fill="url(#g)" stroke-linejoin="round"></path>
+    <path d="M52 58 L92 14 L60 92 C59 95 55 94 54 91 L48 68 Z" fill="url(#g)"></path>
+    <path d="M52 58 L92 14 L60 92 C59 95 55 94 54 91 L48 68 Z" fill="rgba(0,0,0,0.16)"></path>
+    <circle cx="86" cy="20" r="7" fill="#A96B24"></circle>
+    <circle cx="70" cy="9" r="4" fill="#A96B24" opacity="0.55"></circle>
+  </g>
+  <text x="122" y="95" font-family="Geist, sans-serif" font-weight="700" font-size="66" letter-spacing="-2">
+    <tspan fill="#1A1820">Chat</tspan><tspan fill="#A96B24">Pilott</tspan>
+  </text>
+</svg>

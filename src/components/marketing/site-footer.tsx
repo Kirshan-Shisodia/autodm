@@ -60,9 +60,17 @@ export function SiteFooter() {
             <div className="col-span-2 md:col-span-1">
               <Link
                 href="/"
-                className="rounded-sm text-lg font-bold tracking-[-0.16px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                aria-label="ChatPilott home"
+                className="inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
-                AutoDM
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/chatpilott-logo.svg"
+                  alt="ChatPilott"
+                  width={120}
+                  height={28}
+                  className="h-7 w-auto"
+                />
               </Link>
               <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-secondary">
                 Comment-to-DM automation for Instagram creators.
@@ -88,12 +96,12 @@ export function SiteFooter() {
           {/* Trust line (spec §20e) + copyright */}
           <div className="mt-12 flex flex-col gap-4 border-t border-border-subtle pt-6 sm:flex-row sm:items-center sm:justify-between">
             <p className="max-w-2xl text-xs leading-relaxed text-ink-tertiary">
-              AutoDM uses Instagram’s official Graph API and complies with
+              ChatPilott uses Instagram’s official Graph API and complies with
               Meta’s Platform Terms. Not affiliated with or endorsed by Meta or
               Instagram.
             </p>
             <p className="font-geist-mono shrink-0 text-xs text-ink-tertiary">
-              © {year} AutoDM
+              © {year} ChatPilott
             </p>
           </div>
         </div>

@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { LegalShell, LegalSection } from "@/components/legal/legal-shell";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — AutoDM",
+  title: "Privacy Policy — ChatPilott",
   description:
-    "How AutoDM collects, uses, and protects your data, including Instagram data accessed through Meta's official APIs.",
+    "How ChatPilott collects, uses, and protects your data, including Instagram data accessed through Meta's official APIs.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -23,9 +23,9 @@ export default function PrivacyPage() {
       lastUpdated={LAST_UPDATED}
       intro={
         <p>
-          This Privacy Policy explains what data AutoDM (“we”, “us”, “our”)
+          This Privacy Policy explains what data ChatPilott (“we”, “us”, “our”)
           collects when you use our service, how we use it, and the choices you
-          have. AutoDM helps creators automatically reply to people who comment
+          have. ChatPilott helps creators automatically reply to people who comment
           on their own Instagram posts and reels, using Meta&rsquo;s official
           Instagram APIs.
         </p>
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
     >
       <LegalSection id="who-we-are" title="1. Who we are">
         <p>
-          AutoDM is operated by{" "}
+          ChatPilott is operated by{" "}
           <strong className="text-ink">[legal/business name]</strong>, based in{" "}
           <strong className="text-ink">[country/jurisdiction]</strong>. You can
           reach us at{" "}
@@ -67,7 +67,7 @@ export default function PrivacyPage() {
           <li>
             The{" "}
             <strong className="text-ink">
-              messages AutoDM sends on your behalf
+              messages ChatPilott sends on your behalf
             </strong>
             .
           </li>
@@ -103,7 +103,7 @@ export default function PrivacyPage() {
 
       <LegalSection id="third-parties" title="4. Third parties & sub-processors">
         <p>
-          We share data only with the service providers required to run AutoDM:
+          We share data only with the service providers required to run ChatPilott:
         </p>
         <ul className="list-disc space-y-2 pl-6">
           <li>
@@ -162,7 +162,7 @@ export default function PrivacyPage() {
           <li>Captured leads are kept until you request their deletion.</li>
           <li>
             Instagram access tokens are kept until you disconnect the account or
-            delete your AutoDM account.
+            delete your ChatPilott account.
           </li>
         </ul>
       </LegalSection>
@@ -180,7 +180,7 @@ export default function PrivacyPage() {
         </p>
         <p>
           <strong className="text-ink">Instagram / Meta data deletion.</strong>{" "}
-          If you remove AutoDM from your Instagram or Facebook account, Meta
+          If you remove ChatPilott from your Instagram or Facebook account, Meta
           notifies us and we honor that data-deletion request automatically. For
           step-by-step instructions, see our{" "}
           <a href="/data-deletion" className={LINK}>
@@ -215,7 +215,7 @@ export default function PrivacyPage() {
 
       <LegalSection id="children" title="9. Children">
         <p>
-          AutoDM is not directed to anyone under{" "}
+          ChatPilott is not directed to anyone under{" "}
           <strong className="text-ink">
             [13 / 16 / 18 — per your jurisdiction]
           </strong>

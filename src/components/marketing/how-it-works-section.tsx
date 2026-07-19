@@ -19,7 +19,7 @@ const STEPS = [
   },
   {
     icon: Send,
-    title: "AutoDM does the rest",
+    title: "ChatPilott does the rest",
     body: "Every matching comment gets your DM instantly — the link, guide, or offer you set.",
   },
 ];

@@ -18,12 +18,20 @@ function Wordmark({ className }: { className?: string }) {
   return (
     <Link
       href="/"
+      aria-label="ChatPilott home"
       className={cn(
-        "rounded-sm text-lg font-bold tracking-[-0.16px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-brand",
+        "inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-brand",
         className
       )}
     >
-      AutoDM
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/chatpilott-logo.svg"
+        alt="ChatPilott"
+        width={120}
+        height={28}
+        className="h-7 w-auto"
+      />
     </Link>
   );
 }

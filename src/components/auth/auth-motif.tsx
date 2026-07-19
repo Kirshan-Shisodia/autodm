@@ -31,7 +31,7 @@ export function AuthMotif() {
       <div className="auth-motif-dm mt-4 flex items-start justify-end">
         <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-action px-4 py-3 text-ink-inverse">
           <p className="mb-1 flex items-center gap-1.5 text-[11px] font-medium tracking-[0.55px] text-ink-inverse/70 uppercase">
-            <Send className="size-3" /> AutoDM · sent instantly
+            <Send className="size-3" /> ChatPilott · sent instantly
           </p>
           <p className="text-[15px] leading-relaxed">
             Hey Maya! Here&rsquo;s your guide 👉{" "}

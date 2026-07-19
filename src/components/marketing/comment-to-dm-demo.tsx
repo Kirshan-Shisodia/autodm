@@ -76,7 +76,7 @@ export function CommentToDmDemo() {
             className="landing-enter max-w-[85%] rounded-2xl rounded-tr-sm bg-action px-4 py-3 text-ink-inverse"
           >
             <p className="mb-1 flex items-center gap-1.5 text-[11px] font-medium tracking-[0.55px] text-ink-inverse/70 uppercase">
-              <Send className="size-3" /> AutoDM · sent instantly
+              <Send className="size-3" /> ChatPilott · sent instantly
             </p>
             <p className="text-[15px] leading-relaxed">
               Hey Maya! Thanks for commenting{" "}
@@ -111,7 +111,7 @@ export function CommentToDmDemo() {
         />
         {/* Announce the generated reply for assistive tech */}
         <p aria-live="polite" className="sr-only">
-          When someone comments {kw}, AutoDM replies with a link to
+          When someone comments {kw}, ChatPilott replies with a link to
           yourbrand.co/{slug}.
         </p>
       </div>

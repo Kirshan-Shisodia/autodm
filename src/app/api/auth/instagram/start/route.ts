@@ -49,7 +49,7 @@ export async function GET() {
   };
   response.cookies.set("fb_oauth_state", state, cookieOpts);
   // The callback runs with the service-role client (no session), so persist the
-  // AutoDM user id here to know which user this connection belongs to.
+  // ChatPilott user id here to know which user this connection belongs to.
   response.cookies.set("fb_oauth_uid", user.id, cookieOpts);
 
   return response;

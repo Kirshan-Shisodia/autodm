@@ -11,8 +11,8 @@ import { SectionHeading } from "@/components/marketing/section-heading";
 
 const FAQS: { q: string; a: React.ReactNode }[] = [
   {
-    q: "Is AutoDM allowed by Instagram?",
-    a: "Yes. AutoDM runs on Meta’s official Instagram Graph API and only messages people who have already commented on your content — never cold or unsolicited DMs.",
+    q: "Is ChatPilott allowed by Instagram?",
+    a: "Yes. ChatPilott runs on Meta’s official Instagram Graph API and only messages people who have already commented on your content — never cold or unsolicited DMs.",
   },
   {
     q: "Do I need a specific type of account?",

@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { LegalShell, LegalSection } from "@/components/legal/legal-shell";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — AutoDM",
+  title: "Terms of Service — ChatPilott",
   description:
-    "The terms that govern your use of AutoDM, the comment-to-DM automation service for Instagram.",
+    "The terms that govern your use of ChatPilott, the comment-to-DM automation service for Instagram.",
   alternates: { canonical: "/terms" },
 };
 
@@ -24,7 +24,7 @@ export default function TermsPage() {
       intro={
         <p>
           These Terms of Service (“Terms”) govern your access to and use of
-          AutoDM, operated by{" "}
+          ChatPilott, operated by{" "}
           <strong className="text-ink">[legal/business name]</strong> (“we”,
           “us”). By creating an account or using the service, you agree to these
           Terms.
@@ -33,7 +33,7 @@ export default function TermsPage() {
     >
       <LegalSection title="1. The service">
         <p>
-          AutoDM lets you automatically reply, via Instagram direct message, to
+          ChatPilott lets you automatically reply, via Instagram direct message, to
           people who comment on your own Instagram posts and reels, using
           Meta&rsquo;s official Instagram APIs. You are responsible for the
           content of the messages you configure and for how you use the service.
@@ -41,7 +41,7 @@ export default function TermsPage() {
       </LegalSection>
 
       <LegalSection title="2. Acceptable use">
-        <p>You agree not to use AutoDM to:</p>
+        <p>You agree not to use ChatPilott to:</p>
         <ul className="list-disc space-y-2 pl-6">
           <li>send unsolicited or bulk messages, spam, or cold DMs;</li>
           <li>
@@ -64,7 +64,7 @@ export default function TermsPage() {
       <LegalSection title="3. Your Instagram account">
         <p>
           You must own or be authorized to manage any Instagram account you
-          connect. You authorize AutoDM to act on your behalf, within the
+          connect. You authorize ChatPilott to act on your behalf, within the
           permissions you grant through Instagram&rsquo;s official login, to
           read comments and send the messages you configure.
         </p>
@@ -81,7 +81,7 @@ export default function TermsPage() {
 
       <LegalSection title="5. Disclaimer & liability">
         <p>
-          AutoDM is provided “as is.” We do not control Meta&rsquo;s APIs and are
+          ChatPilott is provided “as is.” We do not control Meta&rsquo;s APIs and are
           not responsible for changes, downtime, or message delivery on
           Meta&rsquo;s platforms. To the maximum extent permitted by law, our
           liability is limited to the amount you paid us in the prior three

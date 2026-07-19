@@ -101,12 +101,17 @@ function Brand() {
   return (
     <Link
       href="/dashboard"
-      className="flex h-14 shrink-0 items-center gap-2 px-5 text-[var(--wz-text)]"
+      aria-label="ChatPilott dashboard"
+      className="flex h-14 shrink-0 items-center px-5 text-[var(--wz-text)]"
     >
-      <span className="flex size-6 items-center justify-center rounded-md bg-[var(--wz-accent)] text-xs font-bold text-white">
-        A
-      </span>
-      <span className="text-[15px] font-semibold tracking-tight">AutoDM</span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/chatpilott-logo.svg"
+        alt="ChatPilott"
+        width={120}
+        height={26}
+        className="h-6 w-auto"
+      />
     </Link>
   );
 }

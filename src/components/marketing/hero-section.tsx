@@ -27,7 +27,7 @@ export function HeroSection() {
             </h1>
 
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-secondary text-pretty">
-              AutoDM watches your posts and reels for the keywords you choose,
+              ChatPilott watches your posts and reels for the keywords you choose,
               then instantly sends the link, guide, or offer to everyone who
               comments. No manual replies. No missed leads.
             </p>

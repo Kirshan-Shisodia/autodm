@@ -84,7 +84,7 @@ export default async function LoginPage({
       </form>
 
       <p className="mt-6 text-[13px] leading-[18px] text-ink-secondary">
-        New to AutoDM?{" "}
+        New to ChatPilott?{" "}
         <Link href="/signup" className="font-medium text-brand hover:text-ink">
           Create an account
         </Link>
