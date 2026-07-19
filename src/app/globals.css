@@ -387,3 +387,26 @@
     transform: translateY(0);
   }
 }
+
+/* ============================================================
+   Auth surface — decorative brand-panel motif (auth spec §14).
+   The auto-reply bubble breathes on a slow loop; purely supportive
+   and lives inside an aria-hidden panel, so it's fully gated behind
+   prefers-reduced-motion (renders the static final frame otherwise).
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  .auth-motif-dm {
+    animation: auth-dm-breathe 4.5s ease-in-out infinite;
+  }
+}
+@keyframes auth-dm-breathe {
+  0%,
+  100% {
+    opacity: 0.92;
+    transform: translateY(2px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}

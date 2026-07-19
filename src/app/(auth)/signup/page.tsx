@@ -1,80 +1,90 @@
 import Link from "next/link";
 
 import { signup } from "../actions";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { PasswordField } from "@/components/auth/password-field";
+import { SubmitButton } from "@/components/auth/submit-button";
+import { FormError } from "@/components/auth/form-error";
+import { LegalMicrocopy } from "@/components/auth/legal-microcopy";
 
-// Plans the landing page can pre-select via /signup?plan=… (spec §20c). Anything
-// else is ignored so a junk query param can't seed bad account metadata.
+// Plans the landing/pricing pages can pre-select via /signup?plan=… (spec §20d).
 const VALID_PLANS = ["free", "pro"] as const;
 type Plan = (typeof VALID_PLANS)[number];
 
-function normalizePlan(raw: string | undefined): Plan | undefined {
-  return VALID_PLANS.includes(raw as Plan) ? (raw as Plan) : undefined;
+function normalizePlan(raw: string | undefined): Plan {
+  return VALID_PLANS.includes(raw as Plan) ? (raw as Plan) : "free";
 }
+
+// Enumeration-safe (spec §10, §20b): no "account already exists" message.
+const SIGNUP_ERRORS: Record<string, string> = {
+  weak_password: "Password must be at least 8 characters.",
+  signup_failed: "We couldn't create your account. Please try again.",
+};
 
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; plan?: string }>;
+  searchParams: Promise<{ error?: string; plan?: string; email?: string }>;
 }) {
-  const { error, plan: rawPlan } = await searchParams;
+  const { error, plan: rawPlan, email } = await searchParams;
   const plan = normalizePlan(rawPlan);
+  const errorMsg = error
+    ? (SIGNUP_ERRORS[error] ?? "Something went wrong. Please try again.")
+    : null;
 
   return (
-    <div className="flex flex-1 items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Create your account</CardTitle>
-          <CardDescription>
-            {plan === "pro"
-              ? "Start your Pro plan — automate Instagram DMs at scale."
-              : "Start automating Instagram DMs."}
-          </CardDescription>
-        </CardHeader>
-        <form action={signup}>
-          <CardContent className="space-y-4">
-            {/* Carries the plan chosen on the landing page into the server action
-                (spec §20c: don't lose purchase intent between pages). */}
-            {plan && <input type="hidden" name="plan" value={plan} />}
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                minLength={6}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="mt-4 flex flex-col gap-3">
-            <Button type="submit" className="w-full">
-              Sign up
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link href="/login" className="font-medium text-foreground underline">
-                Log in
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+    <>
+      <header className="space-y-2">
+        <h1 className="text-[24px] leading-[32px] font-bold tracking-[-0.4px] text-ink sm:text-[32px]">
+          Create your account
+        </h1>
+        <p className="text-[14px] leading-[24px] text-ink-secondary">
+          {plan === "pro"
+            ? "Start your Pro plan — automate DMs at scale."
+            : "Start automating your DMs in minutes."}
+        </p>
+      </header>
+
+      <form action={signup} className="mt-6 space-y-4">
+        {/* Carry the chosen plan into the server action without exposing it as a
+            visible control (spec §20d). */}
+        {plan !== "free" && <input type="hidden" name="plan" value={plan} />}
+        {errorMsg && <FormError>{errorMsg}</FormError>}
+
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@email.com"
+            defaultValue={email ?? ""}
+            required
+            aria-invalid={errorMsg ? true : undefined}
+          />
+        </div>
+
+        <PasswordField label="Password" autoComplete="new-password" />
+
+        <div className="pt-2">
+          <SubmitButton pendingLabel="Creating account…">
+            Create account
+          </SubmitButton>
+        </div>
+      </form>
+
+      <p className="mt-6 text-[13px] leading-[18px] text-ink-secondary">
+        Already have an account?{" "}
+        <Link href="/login" className="font-medium text-brand hover:text-ink">
+          Log in
+        </Link>
+      </p>
+
+      <div className="mt-6">
+        <LegalMicrocopy verb="creating an account" />
+      </div>
+    </>
   );
 }
