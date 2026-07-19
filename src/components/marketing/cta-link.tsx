@@ -6,9 +6,9 @@ type Variant = "primary" | "ghost" | "outline" | "inverse";
 type Size = "md" | "lg";
 
 const VARIANTS: Record<Variant, string> = {
-  // HALO action.primary → hover → pressed (spec §18). Dark ink chip, no gradient.
+  // Brand amber chip (text.brand) → darker on hover/pressed. Flat, no gradient.
   primary:
-    "bg-action text-ink-inverse hover:bg-action-hover active:bg-action-pressed",
+    "bg-brand text-ink-inverse hover:bg-brand-hover active:bg-brand-pressed",
   // Low-emphasis secondary; warm hover wash (interaction.hover-bg).
   ghost: "text-ink hover:bg-hover-bg",
   // Bordered secondary — used by the Free plan card CTA.

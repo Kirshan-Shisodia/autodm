@@ -67,6 +67,8 @@
   --color-ink-inverse: #ffffff;
 
   --color-brand: #a96b24; /* text.brand / focus */
+  --color-brand-hover: #95601f; /* darker amber — primary CTA hover */
+  --color-brand-pressed: #7e4f19; /* darker still — primary CTA pressed */
 
   --color-action: #23212a; /* action.primary */
   --color-action-hover: #1a1820;
