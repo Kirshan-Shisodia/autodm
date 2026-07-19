@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Plus } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -6,14 +8,23 @@ import {
   greeting,
   hoursAgo,
   startOfMonth,
+  tokenExpiryDays,
   type Plan,
 } from "@/lib/dashboard";
 import { KpiCards } from "@/components/dashboard/kpi-cards";
-import { PastDueBanner } from "@/components/dashboard/past-due-banner";
+import {
+  AlertBanner,
+  type AlertAccount,
+} from "@/components/dashboard/alert-banner";
+import { SafetyRow } from "@/components/dashboard/safety-row";
 import {
   AccountHealthWidget,
   type AccountHealth,
 } from "@/components/dashboard/account-health";
+import {
+  TopAutomationCard,
+  type TopAutomation,
+} from "@/components/dashboard/top-automation-card";
 import {
   RecentActivity,
   type FeedRow,
@@ -62,6 +73,7 @@ export default async function DashboardPage() {
     { data: accounts },
     { count: linkClicks },
     { data: hourlyLogs },
+    { data: topAutomationRow },
   ] = await Promise.all([
     supabase.from("users").select("*").eq("id", user.id).single(),
     supabase
@@ -101,6 +113,13 @@ export default async function DashboardPage() {
       .eq("user_id", user.id)
       .eq("status", "sent")
       .gte("sent_at", hourAgo),
+    supabase
+      .from("automations")
+      .select("id, name, type, total_dms_sent, total_clicks")
+      .eq("user_id", user.id)
+      .order("total_dms_sent", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const plan = (userRow?.plan ?? "free") as Plan;
@@ -131,6 +150,16 @@ export default async function DashboardPage() {
     hourlySends: hourlyByAccount.get(a.id) ?? 0,
   }));
 
+  // Total sends in the last hour across all accounts — feeds the capacity meter.
+  const hourlySends = healthAccounts.reduce((sum, a) => sum + a.hourlySends, 0);
+
+  const alertAccounts: AlertAccount[] = healthAccounts.map((a) => ({
+    ig_username: a.ig_username,
+    expiryDays: tokenExpiryDays(a.token_expires_at),
+  }));
+
+  const topAutomation = (topAutomationRow as TopAutomation | null) ?? null;
+
   const feedRows: FeedRow[] = ((recentDms ?? []) as DmLogRow[]).map((d) => ({
     id: d.id,
     recipient: d.recipient_username || d.recipient_ig_id || "someone",
@@ -142,11 +171,29 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {subscriptionStatus === "past_due" && <PastDueBanner />}
+      <AlertBanner
+        subscriptionStatus={subscriptionStatus}
+        accounts={alertAccounts}
+      />
 
-      <h1 className="text-[28px] font-semibold tracking-tight text-[var(--wz-text)] max-sm:text-[22px]">
-        {greeting()}, {firstName}.
-      </h1>
+      <div className="flex items-center justify-between gap-4 max-sm:flex-col max-sm:items-stretch">
+        <h1 className="text-[28px] font-semibold tracking-tight text-[var(--wz-text)] max-sm:text-[22px]">
+          {greeting()}, {firstName}.
+        </h1>
+        <Link
+          href="/automations/new"
+          className="inline-flex h-10 items-center gap-2 rounded-[var(--wz-r-button)] bg-[var(--wz-accent)] px-4 text-sm font-medium text-[var(--wz-text-dark)] transition-colors duration-100 [transition-timing-function:var(--ease-standard)] hover:bg-[var(--wz-accent-hover)] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:outline-none max-sm:w-full max-sm:justify-center"
+        >
+          <Plus className="size-4" /> New Automation
+        </Link>
+      </div>
+
+      <SafetyRow
+        dmCount={dmCount}
+        dmLimit={DM_LIMIT[plan]}
+        hourlySends={hourlySends}
+        accountCount={healthAccounts.length}
+      />
 
       <KpiCards
         dmCount={dmCount}
@@ -156,7 +203,11 @@ export default async function DashboardPage() {
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <TopAutomationCard automation={topAutomation} />
         <AccountHealthWidget accounts={healthAccounts} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
         <RecentActivity
           userId={user.id}
           initialRows={feedRows}

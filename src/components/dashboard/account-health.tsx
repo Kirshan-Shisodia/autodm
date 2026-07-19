@@ -51,10 +51,11 @@ function statusFor(account: AccountHealth): Status {
   return { tone: "green", label: "Healthy" };
 }
 
+// HALO status utilities — success ink, brand amber, danger ink. No raw colours.
 const DOT: Record<Status["tone"], string> = {
-  green: "bg-green-500",
-  amber: "bg-amber-500",
-  red: "bg-[var(--wz-accent-pop)]",
+  green: "bg-success",
+  amber: "bg-brand",
+  red: "bg-danger",
 };
 
 export function AccountHealthWidget({
@@ -63,8 +64,8 @@ export function AccountHealthWidget({
   accounts: AccountHealth[];
 }) {
   return (
-    <section className="rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-[var(--wz-bg)]">
-      <h2 className="border-b border-[var(--wz-border)] px-5 py-3 text-sm font-semibold text-[var(--wz-text)]">
+    <section className="rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-[var(--wz-bg)] transition-colors duration-200 [transition-timing-function:var(--ease-standard)] hover:border-border-strong">
+      <h2 className="border-b border-[var(--wz-border)] px-5 py-3.5 text-xs font-medium tracking-[0.055em] text-ink-tertiary uppercase">
         Account health
       </h2>
 
@@ -85,8 +86,10 @@ export function AccountHealthWidget({
             const status = statusFor(account);
             const labelColor =
               status.tone === "red"
-                ? "text-[var(--wz-accent-pop)]"
-                : "text-[var(--wz-text-muted)]";
+                ? "text-danger"
+                : status.tone === "amber"
+                  ? "text-warning-text"
+                  : "text-[var(--wz-text-muted)]";
             return (
               <li
                 key={account.id}

@@ -47,6 +47,19 @@ export function relativeTime(iso: string, now: Date = new Date()): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+/**
+ * Whole days until a token expires (negative = already expired, null = no
+ * expiry on record). Shared by the alert banner and account-health so both
+ * read the same threshold.
+ */
+export function tokenExpiryDays(
+  iso: string | null,
+  now: Date = new Date(),
+): number | null {
+  if (!iso) return null;
+  return Math.floor((new Date(iso).getTime() - now.getTime()) / 86_400_000);
+}
+
 /** Number with thousands separators, e.g. 1204 → "1,204". */
 export function formatCount(n: number): string {
   return n.toLocaleString("en-US");

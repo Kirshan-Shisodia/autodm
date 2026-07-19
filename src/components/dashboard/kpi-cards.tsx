@@ -13,8 +13,8 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-[var(--wz-bg)] p-5">
-      <div className="text-[13px] font-medium text-[var(--wz-text-muted)]">
+    <div className="rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-[var(--wz-bg)] p-5 transition-colors duration-200 [transition-timing-function:var(--ease-standard)] hover:border-border-strong">
+      <div className="text-xs font-medium tracking-[0.055em] text-ink-tertiary uppercase">
         {label}
       </div>
       <div className="mt-3">{children}</div>

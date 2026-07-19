@@ -55,10 +55,10 @@ function SidebarNav({
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex min-h-[40px] items-center gap-3 rounded-md border-l-2 px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wz-accent)]",
+                      "flex min-h-[40px] items-center gap-3 rounded-md border-l-2 px-3 text-sm transition-colors duration-100 [transition-timing-function:var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
                       active
-                        ? "border-[var(--wz-accent)] bg-[var(--wz-accent)]/8 font-semibold text-[var(--wz-text)]"
-                        : "border-transparent text-[var(--wz-text-muted)] hover:bg-[var(--wz-surface)] hover:text-[var(--wz-text)]",
+                        ? "border-brand bg-selected-bg font-semibold text-brand"
+                        : "border-transparent text-[var(--wz-text-muted)] hover:bg-hover-bg hover:text-[var(--wz-text)]",
                     )}
                   >
                     <Icon className="size-4 shrink-0" />
@@ -77,7 +77,7 @@ function SidebarNav({
 function ProfileChip({ user }: { user: ShellUser }) {
   return (
     <div className="flex items-center gap-3 border-t border-[var(--wz-border)] px-4 py-3">
-      <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-sm font-medium text-white">
+      <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--wz-accent)] text-sm font-medium text-white">
         {user.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={user.avatarUrl} alt="" className="size-full object-cover" />

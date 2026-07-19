@@ -26,7 +26,7 @@ function StatusDot({ status }: { status: string }) {
   const failed = status === "failed";
   return (
     <span
-      className={`inline-block size-2 shrink-0 rounded-full ${failed ? "bg-[var(--wz-accent-pop)]" : "bg-green-500"}`}
+      className={`inline-block size-2 shrink-0 rounded-full ${failed ? "bg-danger" : "bg-success"}`}
       aria-hidden
     />
   );
@@ -109,8 +109,8 @@ export function RecentActivity({
   }, [userId]);
 
   return (
-    <section className="rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-[var(--wz-bg)]">
-      <h2 className="border-b border-[var(--wz-border)] px-5 py-3 text-sm font-semibold text-[var(--wz-text)]">
+    <section className="rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-[var(--wz-bg)] transition-colors duration-200 [transition-timing-function:var(--ease-standard)] hover:border-border-strong">
+      <h2 className="border-b border-[var(--wz-border)] px-5 py-3.5 text-xs font-medium tracking-[0.055em] text-ink-tertiary uppercase">
         Recent activity
       </h2>
 

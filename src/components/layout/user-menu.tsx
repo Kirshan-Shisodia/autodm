@@ -1,6 +1,8 @@
 "use client";
 
 // Topbar user menu (spec §4): avatar → Settings, Billing, Sign out.
+// HALO-tokened surface — warm card, warm hover, HALO danger for Sign out —
+// so the menu matches the rest of the app instead of shadcn's grey defaults.
 
 import Link from "next/link";
 import { CreditCard, LogOut, Settings } from "lucide-react";
@@ -21,7 +23,7 @@ export function UserMenu({ user }: { user: ShellUser }) {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Open user menu"
-        className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-sm font-medium text-white outline-none focus-visible:ring-2 focus-visible:ring-[var(--wz-accent)]"
+        className="flex size-8 items-center justify-center rounded-full bg-[var(--wz-accent)] text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         {user.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -34,26 +36,41 @@ export function UserMenu({ user }: { user: ShellUser }) {
           (user.name?.[0] ?? user.email?.[0] ?? "?").toUpperCase()
         )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-56">
-        <DropdownMenuLabel className="flex flex-col">
-          <span className="text-sm font-medium">{user.name}</span>
-          <span className="text-xs font-normal text-muted-foreground">
+      <DropdownMenuContent
+        align="end"
+        className="wz-font-ui min-w-56 rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-[var(--wz-bg)] p-1.5 text-[var(--wz-text)] shadow-floating ring-0"
+      >
+        <DropdownMenuLabel className="flex flex-col px-2 py-1.5">
+          <span className="text-sm font-medium text-[var(--wz-text)]">
+            {user.name}
+          </span>
+          <span className="truncate text-xs font-normal text-[var(--wz-text-muted)]">
             {user.email}
           </span>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
+        <DropdownMenuSeparator className="bg-[var(--wz-border)]" />
+        <DropdownMenuItem
+          asChild
+          className="rounded-md px-2 py-1.5 text-[var(--wz-text)] focus:bg-[var(--wz-surface)] focus:text-[var(--wz-text)]"
+        >
           <Link href="/settings">
             <Settings className="size-4" /> Settings
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
+        <DropdownMenuItem
+          asChild
+          className="rounded-md px-2 py-1.5 text-[var(--wz-text)] focus:bg-[var(--wz-surface)] focus:text-[var(--wz-text)]"
+        >
           <Link href="/billing">
             <CreditCard className="size-4" /> Billing
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild variant="destructive">
+        <DropdownMenuSeparator className="bg-[var(--wz-border)]" />
+        <DropdownMenuItem
+          asChild
+          variant="destructive"
+          className="rounded-md px-2 py-1.5 data-[variant=destructive]:text-[var(--wz-accent-pop)] data-[variant=destructive]:focus:bg-[var(--wz-accent-pop)]/10 data-[variant=destructive]:focus:text-[var(--wz-accent-pop)]"
+        >
           <form action={signOut}>
             <button type="submit" className="flex w-full items-center gap-2">
               <LogOut className="size-4" /> Sign out
