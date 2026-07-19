@@ -81,6 +81,42 @@
   --color-warning-bg: #fff7e8;
   --color-warning-text: #8c5418;
 
+  /* --- Landing additions: expose the rest of HALO v4 as utilities so the
+     landing spec's class names resolve (surface.card, chrome-border,
+     text.success, display sizes, easings). Base type scale is intentionally
+     left to Tailwind to avoid changing the existing app. --- */
+  --color-surface-card: #ffffff; /* surface.card — flat card fill */
+  --color-surface-glass: rgba(255, 255, 255, 0.6); /* surface.glass — nav */
+  --color-chrome-border: #e7e2da; /* surface.chrome-border — nav divider */
+  --color-border-subtle: #f1eee8; /* border.subtle */
+  --color-border-focus: #a96b24; /* border.focus */
+  --color-success: #256b52; /* text.success — pricing ticks */
+  --color-success-bg: #eaf6f0; /* status.success.bg */
+  --color-danger: #a02b26; /* text.danger */
+  --color-danger-bg: #fdf0ee; /* status.danger.bg */
+
+  /* Display type scale (HALO font.size) — headings only; base left to Tailwind. */
+  --text-display-sm: 36px;
+  --text-display-sm--line-height: 40px;
+  --text-display-sm--letter-spacing: -0.4px;
+  --text-display-md: 48px;
+  --text-display-md--line-height: 1.05;
+  --text-display-md--letter-spacing: -0.4px;
+  --text-display-lg: 56px;
+  --text-display-lg--line-height: 1.05;
+  --text-display-lg--letter-spacing: -0.4px;
+  --text-display-xl: 64px;
+  --text-display-xl--line-height: 1.05;
+  --text-display-xl--letter-spacing: -0.4px;
+
+  /* Motion easings (HALO motion.easing) — durations via duration-{100..400}. */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Elevation — floating only (popovers / sticky nav on scroll); cards stay flat. */
+  --shadow-floating: 0 8px 24px -4px rgba(26, 24, 32, 0.08);
+
   --breakpoint-2xl: 1440px; /* token override vs Tailwind default 1536 */
 }
 
