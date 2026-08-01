@@ -1,16 +1,29 @@
 "use client";
 
-import { Plug } from "lucide-react";
+import { Plus } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-export function ConnectButton({ label = "Connect Instagram Account" }: { label?: string }) {
+export function ConnectButton({
+  label = "Connect Account",
+  className,
+}: {
+  label?: string;
+  className?: string;
+}) {
   // A plain full navigation (not router.push / fetch) is intentional —
   // OAuth requires a top-level redirect.
   return (
-    <Button asChild>
+    <Button
+      asChild
+      className={cn(
+        "h-9 rounded-lg bg-action px-3.5 text-[13px] text-white hover:bg-action-hover",
+        className,
+      )}
+    >
       <a href="/api/auth/instagram/start">
-        <Plug className="h-4 w-4" />
+        <Plus className="size-4" />
         {label}
       </a>
     </Button>
