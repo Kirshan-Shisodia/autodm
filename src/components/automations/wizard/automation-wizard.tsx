@@ -155,9 +155,7 @@ export function AutomationWizard({
                 {step === 5 && (
                   <StepReply state={state} set={set} plan={plan} />
                 )}
-                {step === 6 && (
-                  <StepReview state={state} goToStep={goToStep} />
-                )}
+                {step === 6 && <StepReview state={state} goToStep={goToStep} />}
               </motion.div>
             </AnimatePresence>
           </div>
