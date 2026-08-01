@@ -98,6 +98,8 @@
   --color-success-bg: #eaf6f0; /* status.success.bg */
   --color-danger: #a02b26; /* text.danger */
   --color-danger-bg: #fdf0ee; /* status.danger.bg */
+  --color-running: #6647c9; /* status.running.text */
+  --color-running-bg: #f7f4fc; /* status.running.bg */
 
   /* Display type scale (HALO font.size) — headings only; base left to Tailwind. */
   --text-display-sm: 36px;
