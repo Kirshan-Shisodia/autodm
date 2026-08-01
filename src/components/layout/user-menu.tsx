@@ -18,26 +18,45 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ShellUser } from "./types";
 
-export function UserMenu({ user }: { user: ShellUser }) {
+export function UserMenu({
+  user,
+  /** Replaces the bare avatar — the sidebar passes a whole profile row. */
+  trigger,
+  align = "end",
+  side,
+}: {
+  user: ShellUser;
+  trigger?: React.ReactNode;
+  align?: "start" | "center" | "end";
+  side?: "top" | "right" | "bottom" | "left";
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Open user menu"
-        className="flex size-8 items-center justify-center rounded-full bg-[var(--wz-accent)] text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:outline-none"
+        // `asChild` would fight the custom trigger's own layout, so the
+        // trigger stays a button and simply renders whatever it's handed.
+        className={
+          trigger
+            ? "w-full rounded-lg focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset focus-visible:outline-none"
+            : "flex size-8 items-center justify-center rounded-full bg-[var(--wz-accent)] text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:outline-none"
+        }
       >
-        {user.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={user.avatarUrl}
-            alt=""
-            className="size-full rounded-full object-cover"
-          />
-        ) : (
-          (user.name?.[0] ?? user.email?.[0] ?? "?").toUpperCase()
-        )}
+        {trigger ??
+          (user.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={user.avatarUrl}
+              alt=""
+              className="size-full rounded-full object-cover"
+            />
+          ) : (
+            (user.name?.[0] ?? user.email?.[0] ?? "?").toUpperCase()
+          ))}
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        align="end"
+        align={align}
+        side={side}
         className="wz-font-ui min-w-56 rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-[var(--wz-bg)] p-1.5 text-[var(--wz-text)] shadow-floating ring-0"
       >
         <DropdownMenuLabel className="flex flex-col px-2 py-1.5">

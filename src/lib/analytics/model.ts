@@ -212,6 +212,73 @@ export function toSeries(
   }));
 }
 
+/**
+ * A timestamped amount rather than a bare event. Revenue is the only metric on
+ * the page that sums a value instead of counting rows, so it needs its own
+ * bucketing pass — `toSeries` would happily chart "how many leads had money on
+ * them", which is a different (and much less interesting) question.
+ */
+export type ValuePoint = { at: string; value: number };
+
+/** Same bucketing as `toSeries`, but summing amounts instead of counting rows. */
+export function toValueSeries(
+  points: ValuePoint[],
+  range: ResolvedRange,
+): SeriesPoint[] {
+  const starts = bucketStarts(range);
+  const startsMs = starts.map((d) => d.getTime());
+  const totals = new Array<number>(starts.length).fill(0);
+  const endMs = range.end.getTime();
+
+  for (const point of points) {
+    const t = new Date(point.at).getTime();
+    if (Number.isNaN(t) || t < startsMs[0] || t > endMs) continue;
+    let lo = 0;
+    let hi = startsMs.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (startsMs[mid] <= t) lo = mid;
+      else hi = mid - 1;
+    }
+    totals[lo] += point.value;
+  }
+
+  return starts.map((d, i) => ({
+    t: d.toISOString(),
+    date: localDate(d),
+    label: tickLabel(d, range.unit),
+    value: totals[i],
+  }));
+}
+
+/** Sum of amounts that landed inside the current window. */
+export function sumInWindow(points: ValuePoint[], range: ResolvedRange): number {
+  const from = range.start.getTime();
+  const to = range.end.getTime();
+  let total = 0;
+  for (const point of points) {
+    const t = new Date(point.at).getTime();
+    if (t >= from && t <= to) total += point.value;
+  }
+  return total;
+}
+
+/** Sum over the comparison window. Null when there's no baseline (all-time). */
+export function sumInPrevWindow(
+  points: ValuePoint[],
+  range: ResolvedRange,
+): number | null {
+  if (!range.prevStart || !range.prevEnd) return null;
+  const from = range.prevStart.getTime();
+  const to = range.prevEnd.getTime();
+  let total = 0;
+  for (const point of points) {
+    const t = new Date(point.at).getTime();
+    if (t >= from && t <= to) total += point.value;
+  }
+  return total;
+}
+
 /** Rows that landed inside the current window. */
 export function countInWindow(timestamps: string[], range: ResolvedRange): number {
   const from = range.start.getTime();

@@ -1,123 +1,86 @@
-// Account health widget (spec §6). One row per connected account with a status,
-// derived from the right columns. Status is never colour-only — each carries a
-// label too (spec §12).
+// Account Health — four operational tiles, each a coloured dot and two words.
+//
+// This card's job is to be ignorable. Everything green means "stop reading and
+// go look at your numbers", so the design gives status no visual weight until
+// something is actually wrong. Status is never colour-only: every dot sits
+// beside a word, so the card survives a greyscale screenshot.
 
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
-export type AccountHealth = {
-  id: string;
-  ig_username: string;
-  token_expires_at: string | null;
-  hourlySends: number;
+import { cn } from "@/lib/utils";
+import { AnalyticsCard } from "@/components/analytics/card";
+import type { HealthTile, HealthTone } from "@/lib/dashboard/query";
+
+// HALO status indicators. Arbitrary hexes rather than utilities because the
+// token file exposes these three as `status.*.indicator`, and there is no
+// `bg-indicator-success` in the theme layer.
+const DOT: Record<HealthTone, string> = {
+  ok: "bg-[#3eaa83]",
+  warn: "bg-[#a96b24]",
+  bad: "bg-[#e0413a]",
+  idle: "bg-border-strong",
 };
 
-const DAY_MS = 86_400_000;
-
-// Conservative hourly send cap mirrored from the n8n engine (Node 9). Surfaced
-// here only as an early warning — enforcement still happens in the workflow.
-export const HOURLY_DM_CAP = 100;
-
-type Status = {
-  tone: "green" | "amber" | "red";
-  label: string;
-  action?: { href: string; label: string };
+const TEXT: Record<HealthTone, string> = {
+  ok: "text-success",
+  warn: "text-warning-text",
+  bad: "text-danger",
+  idle: "text-ink-muted",
 };
 
-function statusFor(account: AccountHealth): Status {
-  if (account.token_expires_at) {
-    const days = Math.floor(
-      (new Date(account.token_expires_at).getTime() - Date.now()) / DAY_MS,
-    );
-    if (days < 0) {
-      return {
-        tone: "red",
-        label: "Connection expired",
-        action: { href: "/accounts", label: "Reconnect" },
-      };
-    }
-    if (days <= 7) {
-      return {
-        tone: "amber",
-        label: `Reconnect within ${days} day${days === 1 ? "" : "s"}`,
-        action: { href: "/accounts", label: "Reconnect" },
-      };
-    }
-  }
-
-  if (account.hourlySends > HOURLY_DM_CAP * 0.8) {
-    return { tone: "red", label: "Approaching the hourly limit" };
-  }
-
-  return { tone: "green", label: "Healthy" };
-}
-
-// HALO status utilities — success ink, brand amber, danger ink. No raw colours.
-const DOT: Record<Status["tone"], string> = {
-  green: "bg-success",
-  amber: "bg-brand",
-  red: "bg-danger",
-};
-
-export function AccountHealthWidget({
-  accounts,
+export function AccountHealth({
+  tiles,
+  className,
 }: {
-  accounts: AccountHealth[];
+  tiles: HealthTile[];
+  className?: string;
 }) {
   return (
-    <section className="rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-[var(--wz-bg)] transition-colors duration-200 [transition-timing-function:var(--ease-standard)] hover:border-border-strong">
-      <h2 className="border-b border-[var(--wz-border)] px-5 py-3.5 text-xs font-medium tracking-[0.055em] text-ink-tertiary uppercase">
-        Account health
-      </h2>
-
-      {accounts.length === 0 ? (
-        <div className="px-5 py-8 text-center text-sm text-[var(--wz-text-muted)]">
-          No Instagram account connected yet.{" "}
-          <Link
-            href="/accounts"
-            className="font-medium text-[var(--wz-accent)] hover:underline"
+    <AnalyticsCard
+      title="Account Health"
+      className={className}
+      action={
+        <Link
+          href="/accounts"
+          className="inline-flex items-center gap-1 rounded-sm text-[12px] font-medium text-brand transition-colors duration-100 hover:text-brand-hover focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
+        >
+          View all
+          <ArrowRight className="size-3" aria-hidden />
+        </Link>
+      }
+    >
+      <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        {tiles.map((tile) => (
+          <li
+            key={tile.key}
+            className="rounded-lg border border-border-subtle bg-surface-app px-3 py-2.5"
           >
-            Connect one
-          </Link>
-          .
-        </div>
-      ) : (
-        <ul className="divide-y divide-[var(--wz-border)]">
-          {accounts.map((account) => {
-            const status = statusFor(account);
-            const labelColor =
-              status.tone === "red"
-                ? "text-danger"
-                : status.tone === "amber"
-                  ? "text-warning-text"
-                  : "text-[var(--wz-text-muted)]";
-            return (
-              <li
-                key={account.id}
-                className="flex items-center gap-3 px-5 py-3.5"
-              >
-                <span
-                  className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${DOT[status.tone]}`}
-                  aria-hidden
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium text-[var(--wz-text)]">
-                    @{account.ig_username}
-                  </div>
-                  <div className={`text-xs ${labelColor}`}>{status.label}</div>
-                </div>
-                {status.action && (
-                  <Link
-                    href={status.action.href}
-                    className="shrink-0 rounded-md border border-[var(--wz-border)] px-3 py-1.5 text-xs font-medium text-[var(--wz-text)] hover:bg-[var(--wz-surface)]"
-                  >
-                    {status.action.label}
-                  </Link>
+            <p className="truncate text-[11px] font-medium text-ink-tertiary">
+              {tile.label}
+            </p>
+            <p className="mt-1.5 flex items-center gap-1.5">
+              <span
+                className={cn("size-1.5 shrink-0 rounded-full", DOT[tile.tone])}
+                aria-hidden
+              />
+              <span
+                className={cn(
+                  "truncate text-[12px] font-medium",
+                  TEXT[tile.tone],
                 )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
+              >
+                {tile.status}
+              </span>
+            </p>
+            {tile.detail && (
+              <p className="mt-0.5 truncate text-[11px] text-ink-muted">
+                {tile.detail}
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </AnalyticsCard>
   );
 }

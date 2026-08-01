@@ -6,7 +6,11 @@ import { ArrowRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { conversionTone, typeMeta } from "@/lib/automations/list";
-import { formatCount, formatPercent } from "@/lib/analytics/model";
+import {
+  formatCount,
+  formatCurrency,
+  formatPercent,
+} from "@/lib/analytics/model";
 import type { TopAutomationRow } from "@/lib/analytics/query";
 import { AnalyticsCard, CardEmpty } from "./card";
 
@@ -14,10 +18,20 @@ const HEAD =
   "px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
 const HEAD_NUM = `${HEAD} text-right`;
 
-export function TopAutomations({ rows }: { rows: TopAutomationRow[] }) {
+export function TopAutomations({
+  rows,
+  /** The dashboard shows the money column; Analytics has a revenue card already. */
+  showRevenue = false,
+  className,
+}: {
+  rows: TopAutomationRow[];
+  showRevenue?: boolean;
+  className?: string;
+}) {
   return (
     <AnalyticsCard
       title="Top Automations"
+      className={className}
       bodyClassName="px-2 pb-3"
       action={
         <Link
@@ -39,6 +53,9 @@ export function TopAutomations({ rows }: { rows: TopAutomationRow[] }) {
               <th className={HEAD_NUM}>DMs sent</th>
               <th className={cn(HEAD_NUM, "hidden sm:table-cell")}>Clicks</th>
               <th className={HEAD_NUM}>Conv. rate</th>
+              {showRevenue && (
+                <th className={cn(HEAD_NUM, "hidden md:table-cell")}>Revenue</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -90,6 +107,15 @@ export function TopAutomations({ rows }: { rows: TopAutomationRow[] }) {
                       </span>
                     )}
                   </td>
+                  {showRevenue && (
+                    <td className="wz-font-mono hidden px-3 py-2.5 text-right text-[13px] font-medium text-ink md:table-cell">
+                      {row.revenue > 0 ? (
+                        formatCurrency(row.revenue)
+                      ) : (
+                        <span className="font-normal text-ink-muted">—</span>
+                      )}
+                    </td>
+                  )}
                 </tr>
               );
             })}

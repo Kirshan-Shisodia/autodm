@@ -31,10 +31,13 @@ export function PerformanceOverview({
   data,
   unit,
   className,
+  /** The dashboard calls this same chart "Activity Overview". */
+  title = "Performance Overview",
 }: {
   data: { dmsSent: SeriesPoint[]; linkClicks: SeriesPoint[] };
   unit: "day" | "week";
   className?: string;
+  title?: string;
 }) {
   const [active, setActive] = useState<SeriesKey>("dmsSent");
   const points = data[active];
@@ -46,7 +49,7 @@ export function PerformanceOverview({
 
   return (
     <AnalyticsCard
-      title="Performance Overview"
+      title={title}
       className={className}
       action={
         <div

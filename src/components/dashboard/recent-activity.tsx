@@ -1,71 +1,76 @@
 "use client";
 
-// Recent activity feed (spec §7) — the signature of this screen. The last 10
-// sends, newest first, updating live via Supabase realtime. New rows get a
-// subtle flash that respects prefers-reduced-motion.
+// Recent Activity — the signature of this screen. Server-rendered from the
+// merged feed (DMs, clicks, leads, edits) and then kept live: new dm_logs rows
+// arrive over Supabase realtime and slide in at the top with a subtle flash.
+//
+// The realtime channel only covers dm_logs. Clicks and leads are inserted by
+// paths the browser has no subscription to, so they appear on the next load —
+// pretending otherwise would mean polling four tables to save a refresh.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { Inbox } from "lucide-react";
+import {
+  ArrowRight,
+  Link2,
+  Pencil,
+  Send,
+  TriangleAlert,
+  UserPlus,
+  type LucideIcon,
+} from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
-import { relativeTime } from "@/lib/dashboard";
+import {
+  ACTIVITY_META,
+  relativeTime,
+  type ActivityKind,
+  type ActivityRow,
+} from "@/lib/analytics/model";
+import { AnalyticsCard, CardEmpty } from "@/components/analytics/card";
 
-export type FeedRow = {
-  id: string;
-  recipient: string;
-  label: string;
-  status: string;
-  sent_at: string;
-  automation_id: string | null;
+const ICONS: Record<ActivityKind, LucideIcon> = {
+  dm_sent: Send,
+  dm_failed: TriangleAlert,
+  link_click: Link2,
+  lead: UserPlus,
+  automation_edited: Pencil,
 };
 
-const MAX_ROWS = 10;
+const MAX_ROWS = 8;
 
-function StatusDot({ status }: { status: string }) {
-  const failed = status === "failed";
-  return (
-    <span
-      className={`inline-block size-2 shrink-0 rounded-full ${failed ? "bg-danger" : "bg-success"}`}
-      aria-hidden
-    />
-  );
+/** Re-render every 30s so "2m ago" stays true. Bucketed to keep it stable. */
+function subscribeToClock(onChange: () => void): () => void {
+  const id = setInterval(onChange, 30_000);
+  return () => clearInterval(id);
 }
+const clockSnapshot = () => Math.floor(Date.now() / 30_000);
+/** The server has no useful "now", so it renders timestamps blank. */
+const serverSnapshot = () => null;
 
 export function RecentActivity({
   userId,
-  initialRows,
+  rows: initialRows,
   hasAutomations,
+  className,
 }: {
   userId: string;
-  initialRows: FeedRow[];
+  rows: ActivityRow[];
   hasAutomations: boolean;
+  className?: string;
 }) {
-  const [rows, setRows] = useState<FeedRow[]>(initialRows);
+  const [rows, setRows] = useState<ActivityRow[]>(initialRows);
   const [flashIds, setFlashIds] = useState<Set<string>>(new Set());
-  const [, forceTick] = useState(0);
 
-  // Map automation_id → display label so realtime inserts (which only carry the
-  // id) can show the same name as the server-rendered rows.
-  const nameById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const r of initialRows) {
-      if (r.automation_id && r.label) map.set(r.automation_id, r.label);
-    }
-    return map;
+  // A fresh server render (range change, navigation) wins over accumulated
+  // realtime state — otherwise switching to "last 7 days" keeps showing rows
+  // from outside the window.
+  useEffect(() => {
+    setRows(initialRows);
+    setFlashIds(new Set());
   }, [initialRows]);
-  const nameRef = useRef(nameById);
-  useEffect(() => {
-    nameRef.current = nameById;
-  }, [nameById]);
 
-  // Keep relative timestamps fresh without a refresh.
-  useEffect(() => {
-    const t = setInterval(() => forceTick((n) => n + 1), 30_000);
-    return () => clearInterval(t);
-  }, []);
-
-  // Live: prepend new dm_logs INSERTs for this user.
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -78,26 +83,30 @@ export function RecentActivity({
           table: "dm_logs",
           filter: `user_id=eq.${userId}`,
         },
-        (payload) => {
-          const row = payload.new as Record<string, unknown>;
-          const id = String(row.id);
-          const automationId = (row.automation_id as string | null) ?? null;
-          const next: FeedRow = {
+        (payload: { new: Record<string, unknown> }) => {
+          const row = payload.new;
+          const id = `dm-${String(row.id)}`;
+          const who =
+            (row.recipient_username as string | null) ||
+            (row.recipient_ig_id as string | null) ||
+            "someone";
+          const at = (row.sent_at as string) ?? new Date().toISOString();
+          const sent = ((row.status as string) ?? "sent") === "sent";
+
+          const next: ActivityRow = {
             id,
-            recipient:
-              (row.recipient_username as string | null) ||
-              (row.recipient_ig_id as string | null) ||
-              "someone",
-            label:
-              (automationId && nameRef.current.get(automationId)) || "DM",
-            status: (row.status as string) ?? "sent",
-            sent_at: (row.sent_at as string) ?? new Date().toISOString(),
-            automation_id: automationId,
+            kind: sent ? "dm_sent" : "dm_failed",
+            title: sent
+              ? `DM sent to @${who}`
+              : `DM to @${who} didn't send`,
+            at,
           };
-          setRows((prev) => {
-            if (prev.some((r) => r.id === id)) return prev;
-            return [next, ...prev].slice(0, MAX_ROWS);
-          });
+
+          setRows((prev) =>
+            prev.some((r) => r.id === id)
+              ? prev
+              : [next, ...prev].slice(0, MAX_ROWS),
+          );
           setFlashIds((prev) => new Set(prev).add(id));
         },
       )
@@ -108,54 +117,98 @@ export function RecentActivity({
     };
   }, [userId]);
 
-  return (
-    <section className="rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-[var(--wz-bg)] transition-colors duration-200 [transition-timing-function:var(--ease-standard)] hover:border-border-strong">
-      <h2 className="border-b border-[var(--wz-border)] px-5 py-3.5 text-xs font-medium tracking-[0.055em] text-ink-tertiary uppercase">
-        Recent activity
-      </h2>
+  // "2m ago" has to be measured against the reader's clock, not the render's,
+  // or the server HTML and the hydrated DOM disagree.
+  const tick = useSyncExternalStore(
+    subscribeToClock,
+    clockSnapshot,
+    serverSnapshot,
+  );
+  const now = tick === null ? null : new Date();
 
+  return (
+    <AnalyticsCard
+      title="Recent Activity"
+      className={className}
+      action={
+        <Link
+          href="/analytics"
+          className="inline-flex items-center gap-1 rounded-sm text-[12px] font-medium text-brand transition-colors duration-100 hover:text-brand-hover focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
+        >
+          View all
+          <ArrowRight className="size-3" aria-hidden />
+        </Link>
+      }
+    >
       {rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 px-5 py-10 text-center">
-          <Inbox className="size-6 text-[var(--wz-text-muted)]" />
-          <p className="text-sm text-[var(--wz-text-muted)]">
-            No DMs sent yet. When someone comments your keyword, it&apos;ll show
-            up here.
-          </p>
-          {!hasAutomations && (
+        hasAutomations ? (
+          <CardEmpty>
+            Nothing yet in this period. New DMs appear here as they send.
+          </CardEmpty>
+        ) : (
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <p className="text-[13px] text-ink-muted">
+              No activity yet. Your first automation starts the feed.
+            </p>
             <Link
               href="/automations/new"
-              className="mt-1 text-sm font-medium text-[var(--wz-accent)] hover:underline"
+              className="text-[13px] font-medium text-brand hover:underline focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
             >
               Create your first automation
             </Link>
-          )}
-        </div>
+          </div>
+        )
       ) : (
-        <ul className="divide-y divide-[var(--wz-border)]">
-          {rows.map((row) => (
-            <li
-              key={row.id}
-              className={`flex items-center gap-3 px-5 py-3 ${flashIds.has(row.id) ? "dash-row-flash" : ""}`}
-            >
-              <StatusDot status={row.status} />
-              <div className="min-w-0 flex-1">
-                <span className="text-sm font-medium text-[var(--wz-text)]">
-                  @{row.recipient}
-                </span>{" "}
-                <span className="text-sm text-[var(--wz-text-muted)]">
-                  · {row.label}
-                </span>
-              </div>
-              <time
-                dateTime={row.sent_at}
-                className="wz-font-mono shrink-0 text-xs text-[var(--wz-text-muted)]"
+        <ul aria-live="polite" className="space-y-0.5">
+          {rows.map((row) => {
+            const Icon = ICONS[row.kind];
+            const meta = ACTIVITY_META[row.kind];
+            return (
+              <li
+                key={row.id}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-1.5 py-2 transition-colors duration-100 hover:bg-hover-bg",
+                  flashIds.has(row.id) && "dash-row-flash",
+                )}
               >
-                {relativeTime(row.sent_at)}
-              </time>
-            </li>
-          ))}
+                <span
+                  className={cn(
+                    "flex size-7 shrink-0 items-center justify-center rounded-lg",
+                    row.kind === "dm_failed"
+                      ? "bg-danger-bg text-danger"
+                      : "bg-surface-muted text-ink-secondary",
+                  )}
+                  aria-hidden
+                >
+                  <Icon className="size-3.5" />
+                </span>
+
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] text-ink">
+                    {row.title}
+                  </span>
+                  <span className="block text-[11px] text-ink-muted">
+                    {now ? (
+                      relativeTime(row.at, now)
+                    ) : (
+                      <span className="invisible">just now</span>
+                    )}
+                  </span>
+                </span>
+
+                <span
+                  className={cn(
+                    "shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium",
+                    meta.chip,
+                  )}
+                >
+                  {meta.badge}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       )}
-    </section>
+    </AnalyticsCard>
   );
 }

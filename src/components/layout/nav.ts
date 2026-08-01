@@ -9,6 +9,7 @@ import {
   GitBranch,
   UserPlus,
   FileText,
+  Gift,
   CreditCard,
   Settings,
   HelpCircle,
@@ -20,6 +21,8 @@ export type NavItem = {
   href: string;
   icon: LucideIcon;
   pro?: boolean;
+  /** Small chip on the right of the row, e.g. "New". Use sparingly. */
+  badge?: string;
 };
 
 export type NavGroup = {
@@ -45,6 +48,13 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Flows", href: "/flows", icon: GitBranch, pro: true },
       { label: "Leads", href: "/leads", icon: UserPlus, pro: true },
       { label: "Templates", href: "/templates", icon: FileText, pro: true },
+      {
+        label: "Referral Program",
+        href: "/referrals",
+        icon: Gift,
+        pro: true,
+        badge: "New",
+      },
     ],
   },
   {
@@ -52,7 +62,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Billing", href: "/billing", icon: CreditCard },
       { label: "Settings", href: "/settings", icon: Settings },
-      { label: "Help", href: "/help", icon: HelpCircle },
+      { label: "Help & Support", href: "/help", icon: HelpCircle },
     ],
   },
 ];

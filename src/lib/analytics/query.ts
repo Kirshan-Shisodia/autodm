@@ -18,8 +18,11 @@ import {
   percentChange,
   pointChange,
   share,
+  sumInPrevWindow,
+  sumInWindow,
   toHeatmap,
   toSeries,
+  toValueSeries,
   type ActivityRow,
   type AnalyticsFilters,
   type Delta,
@@ -29,6 +32,7 @@ import {
   type Metric,
   type ResolvedRange,
   type SeriesPoint,
+  type ValuePoint,
 } from "./model";
 
 // PostgREST caps a single response (1000 rows on hosted Supabase), so every
@@ -111,7 +115,17 @@ type LeadRow = {
   ig_username: string | null;
   automation_id: string | null;
   ig_account_id: string;
+  /** numeric(12,2) — PostgREST hands numerics back as strings often enough
+   *  that it's worth normalising every read through `amountOf`. */
+  revenue_amount: number | string | null;
 };
+
+/** numeric → number, defensively. A NaN here would poison the whole KPI. */
+function amountOf(value: number | string | null | undefined): number {
+  if (value === null || value === undefined) return 0;
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
 
 type AutomationRow = {
   id: string;
@@ -135,6 +149,8 @@ export type TopAutomationRow = {
   linkClicks: number;
   /** Null when there were no in-window sends to divide by. */
   conversionRate: number | null;
+  /** Revenue attributed to this automation's leads inside the window. */
+  revenue: number;
 };
 
 export type MetricsTableRow = {
@@ -268,7 +284,9 @@ export async function loadAnalytics({
     fetchAllPages<LeadRow>("leads", () => {
       let q = supabase
         .from("leads")
-        .select("id, created_at, email, ig_username, automation_id, ig_account_id")
+        .select(
+          "id, created_at, email, ig_username, automation_id, ig_account_id, revenue_amount",
+        )
         .eq("user_id", userId)
         .gte("created_at", fromIso)
         .order("created_at", { ascending: false })
@@ -309,6 +327,10 @@ export async function loadAnalytics({
   const triggerAt = dmLogs.rows.map((r) => r.sent_at);
   const clickAt = linkClicks.rows.map((r) => r.clicked_at);
   const leadAt = leads.rows.map((r) => r.created_at);
+  const revenueAt: ValuePoint[] = leads.rows.map((r) => ({
+    at: r.created_at,
+    value: amountOf(r.revenue_amount),
+  }));
 
   const dmsSent = countInWindow(sentAt, range);
   const dmsSentPrev = countInPrevWindow(sentAt, range);
@@ -317,6 +339,8 @@ export async function loadAnalytics({
   const clicksPrev = countInPrevWindow(clickAt, range);
   const newLeads = countInWindow(leadAt, range);
   const newLeadsPrev = countInPrevWindow(leadAt, range);
+  const revenue = sumInWindow(revenueAt, range);
+  const revenuePrev = sumInPrevWindow(revenueAt, range);
 
   // With no delivered DMs there is no rate — 0.0% would read as "nobody
   // converted" when the truth is "nothing was sent to convert".
@@ -332,6 +356,7 @@ export async function loadAnalytics({
   const dmsSeries = toSeries(sentAt, range);
   const clicksSeries = toSeries(clickAt, range);
   const leadsSeries = toSeries(leadAt, range);
+  const revenueSeries = toValueSeries(revenueAt, range);
   const conversionSeries = dmsSeries.map((p, i) =>
     p.value > 0 ? (leadsSeries[i].value / p.value) * 100 : 0,
   );
@@ -373,10 +398,9 @@ export async function loadAnalytics({
     {
       key: "revenue",
       label: "Revenue Earned",
-      display: formatCurrency(0),
-      delta: NO_DELTA,
-      series: [],
-      stub: true,
+      display: formatCurrency(revenue),
+      delta: percentChange(revenue, revenuePrev),
+      series: revenueSeries.map((p) => p.value),
     },
     {
       key: "plan_usage",
@@ -391,7 +415,10 @@ export async function loadAnalytics({
 
   // ---- top automations ----------------------------------------------------
   const nameById = new Map(automations.map((a) => [a.id, a]));
-  const perAutomation = new Map<string, { dms: number; clicks: number }>();
+  const perAutomation = new Map<
+    string,
+    { dms: number; clicks: number; revenue: number }
+  >();
 
   for (const row of sentLogs) {
     if (!row.automation_id || !inWindow(row.sent_at, range)) continue;
@@ -402,6 +429,15 @@ export async function loadAnalytics({
     const id = automationIdOf(row);
     if (!id || !inWindow(row.clicked_at, range)) continue;
     ensure(perAutomation, id).clicks += 1;
+  }
+  // Revenue is summed from the in-window lead rows rather than read off
+  // automations.total_revenue: that column is a lifetime counter, and pairing
+  // an all-time number with a 30-day DM count in the same row would be a lie.
+  for (const row of leads.rows) {
+    if (!row.automation_id || !inWindow(row.created_at, range)) continue;
+    ensure(perAutomation, row.automation_id).revenue += amountOf(
+      row.revenue_amount,
+    );
   }
 
   const topAutomations: TopAutomationRow[] = [...perAutomation.entries()]
@@ -414,6 +450,7 @@ export async function loadAnalytics({
       // Null, not zero: an automation with clicks but no in-window sends has
       // an undefined rate, and "0.0%" beside "40 clicks" reads as a failure.
       conversionRate: v.dms > 0 ? share(v.clicks, v.dms) : null,
+      revenue: v.revenue,
     }))
     .sort((a, b) => b.dmsSent - a.dmsSent || b.linkClicks - a.linkClicks)
     .slice(0, 5);
@@ -469,11 +506,10 @@ export async function loadAnalytics({
     {
       key: "revenue",
       label: "Revenue Earned",
-      current: "—",
-      previous: "—",
-      delta: NO_DELTA,
-      series: [],
-      stub: true,
+      current: formatCurrency(revenue),
+      previous: revenuePrev === null ? "—" : formatCurrency(revenuePrev),
+      delta: percentChange(revenue, revenuePrev),
+      series: revenueSeries.map((p) => p.value),
     },
   ];
 
@@ -520,12 +556,12 @@ function inWindow(iso: string, range: ResolvedRange): boolean {
 }
 
 function ensure(
-  map: Map<string, { dms: number; clicks: number }>,
+  map: Map<string, { dms: number; clicks: number; revenue: number }>,
   key: string,
-): { dms: number; clicks: number } {
+): { dms: number; clicks: number; revenue: number } {
   let v = map.get(key);
   if (!v) {
-    v = { dms: 0, clicks: 0 };
+    v = { dms: 0, clicks: 0, revenue: 0 };
     map.set(key, v);
   }
   return v;

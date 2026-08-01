@@ -189,6 +189,10 @@ export interface Database {
           total_triggers: number;
           total_dms_sent: number;
           total_clicks: number;
+          /** What one lead from this automation is worth; 0 = not a revenue automation. */
+          revenue_per_conversion: number;
+          /** Denormalised lifetime revenue, kept in step by trg_leads_sync_revenue. */
+          total_revenue: number;
           created_at: string;
           updated_at: string;
         };
@@ -222,6 +226,8 @@ export interface Database {
           total_triggers?: number;
           total_dms_sent?: number;
           total_clicks?: number;
+          revenue_per_conversion?: number;
+          total_revenue?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -255,6 +261,8 @@ export interface Database {
           total_triggers?: number;
           total_dms_sent?: number;
           total_clicks?: number;
+          revenue_per_conversion?: number;
+          total_revenue?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -532,6 +540,11 @@ export interface Database {
           source: string;
           synced_to_kit: boolean;
           synced_to_flodesk: boolean;
+          /**
+           * Money attributed to this lead, in the account currency. Defaults
+           * from automations.revenue_per_conversion at insert time.
+           */
+          revenue_amount: number;
           created_at: string;
         };
         Insert: {
@@ -545,6 +558,7 @@ export interface Database {
           source?: string;
           synced_to_kit?: boolean;
           synced_to_flodesk?: boolean;
+          revenue_amount?: number;
           created_at?: string;
         };
         Update: {
@@ -558,6 +572,7 @@ export interface Database {
           source?: string;
           synced_to_kit?: boolean;
           synced_to_flodesk?: boolean;
+          revenue_amount?: number;
           created_at?: string;
         };
         Relationships: [

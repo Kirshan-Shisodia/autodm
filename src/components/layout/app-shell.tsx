@@ -1,20 +1,26 @@
 "use client";
 
-// The app shell (spec §4): sticky sidebar + topbar that every app page lives
-// inside. Below 1024px the sidebar collapses into a focus-trapped drawer.
-// HALO light surface — no dark plate here (spec §2).
+// The app shell: a single sticky sidebar that every app page lives inside.
+// Below 1024px it collapses into a focus-trapped drawer, with a slim bar that
+// exists only to hold the hamburger.
+//
+// There is deliberately no desktop topbar. The account switcher, the plan
+// meter and the profile menu all live in the sidebar, which leaves the whole
+// width of the viewport to the page — and lets each page own its own header
+// (title, date range, primary action) instead of splitting those controls
+// across two pieces of chrome.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { ChevronsUpDown, Menu, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { planLabel } from "@/lib/dashboard";
 import { NAV_GROUPS, resolveHref } from "./nav";
 import { AccountSwitcher } from "./account-switcher";
+import { PlanUsage } from "./plan-usage";
 import { UserMenu } from "./user-menu";
-import type { ShellAccount, ShellUser } from "./types";
+import type { ShellAccount, ShellUsage, ShellUser } from "./types";
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -30,18 +36,18 @@ function SidebarNav({
   onNavigate?: () => void;
 }) {
   return (
-    <nav className="flex-1 space-y-7 overflow-y-auto px-3 py-5">
+    <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
       {NAV_GROUPS.map((group) => (
         <div key={group.heading}>
           <h3
             className={cn(
-              "mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.09em]",
+              "mb-1.5 px-3 text-[10px] font-semibold tracking-[0.09em] uppercase",
               group.pro ? "text-brand" : "text-ink-muted",
             )}
           >
             {group.heading}
           </h3>
-          <ul className="space-y-1">
+          <ul className="space-y-0.5">
             {group.items.map((item) => {
               const href = resolveHref(item, plan);
               const active = isActive(pathname, item.href);
@@ -53,19 +59,24 @@ function SidebarNav({
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex h-10 items-center gap-3 rounded-lg px-3 text-sm transition-colors duration-100 [transition-timing-function:var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset",
+                      "flex h-9 items-center gap-2.5 rounded-lg px-3 text-[13px] transition-colors duration-100 [transition-timing-function:var(--ease-standard)] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset focus-visible:outline-none",
                       active
                         ? "bg-selected-bg font-medium text-brand"
-                        : "font-medium text-[var(--wz-text-muted)] hover:bg-hover-bg hover:text-[var(--wz-text)]",
+                        : "font-medium text-ink-secondary hover:bg-hover-bg hover:text-ink",
                     )}
                   >
                     <Icon
                       className={cn(
-                        "size-[18px] shrink-0",
+                        "size-[17px] shrink-0",
                         active ? "text-brand" : "text-ink-muted",
                       )}
                     />
                     {item.label}
+                    {item.badge && (
+                      <span className="ml-auto rounded-full bg-warning-bg px-1.5 py-0.5 text-[10px] font-medium text-warning-text">
+                        {item.badge}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );
@@ -77,25 +88,49 @@ function SidebarNav({
   );
 }
 
-function ProfileChip({ user }: { user: ShellUser }) {
+function Avatar({ user }: { user: ShellUser }) {
   return (
-    <div className="flex items-center gap-3 border-t border-[var(--wz-border)] px-4 py-3">
-      <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--wz-accent)] text-sm font-medium text-white">
-        {user.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={user.avatarUrl} alt="" className="size-full object-cover" />
-        ) : (
-          (user.name?.[0] ?? user.email?.[0] ?? "?").toUpperCase()
-        )}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium text-[var(--wz-text)]">
-          {user.name}
-        </div>
-      </div>
-      <span className="wz-font-mono rounded bg-[var(--wz-surface)] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--wz-text-muted)]">
-        {planLabel(user.plan)}
-      </span>
+    <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-action text-[13px] font-medium text-ink-inverse">
+      {user.avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={user.avatarUrl} alt="" className="size-full object-cover" />
+      ) : (
+        (user.name?.[0] ?? user.email?.[0] ?? "?").toUpperCase()
+      )}
+    </span>
+  );
+}
+
+/**
+ * The profile row at the foot of the sidebar. The whole row is the menu
+ * trigger rather than just the avatar — at 240px wide there's no reason to
+ * make people aim at a 32px circle.
+ */
+function ProfileRow({ user }: { user: ShellUser }) {
+  return (
+    <div className="border-t border-border-default p-2">
+      <UserMenu
+        user={user}
+        align="start"
+        side="top"
+        trigger={
+          <span className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors duration-100 [transition-timing-function:var(--ease-standard)] hover:bg-hover-bg">
+            <Avatar user={user} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-medium text-ink">
+                {user.name}
+              </span>
+              <span className="block truncate text-[11px] text-ink-muted">
+                {user.email}
+              </span>
+            </span>
+            <ChevronsUpDown
+              className="size-3.5 shrink-0 text-ink-muted"
+              aria-hidden
+            />
+          </span>
+        }
+      />
     </div>
   );
 }
@@ -105,7 +140,7 @@ function Brand() {
     <Link
       href="/dashboard"
       aria-label="ChatPilott dashboard"
-      className="flex h-14 shrink-0 items-center px-5 text-[var(--wz-text)]"
+      className="flex h-14 shrink-0 items-center px-4 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset focus-visible:outline-none"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -113,19 +148,46 @@ function Brand() {
         alt="ChatPilott"
         width={170}
         height={40}
-        className="h-12 w-auto"
+        className="h-10 w-auto"
       />
     </Link>
+  );
+}
+
+function SidebarBody({
+  user,
+  accounts,
+  usage,
+  pathname,
+  onNavigate,
+}: {
+  user: ShellUser;
+  accounts: ShellAccount[];
+  usage: ShellUsage;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <>
+      <div className="px-3 pb-3">
+        <AccountSwitcher accounts={accounts} plan={user.plan} />
+      </div>
+      <SidebarNav plan={user.plan} pathname={pathname} onNavigate={onNavigate} />
+      <PlanUsage usage={usage} plan={user.plan} />
+      <ProfileRow user={user} />
+    </>
   );
 }
 
 export function AppShell({
   user,
   accounts,
+  usage,
   children,
 }: {
   user: ShellUser;
   accounts: ShellAccount[];
+  usage: ShellUsage;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -135,7 +197,7 @@ export function AppShell({
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
-  // Esc to close + focus trap while the drawer is open (spec §12).
+  // Esc to close + focus trap while the drawer is open.
   useEffect(() => {
     if (!drawerOpen) return;
     closeButtonRef.current?.focus();
@@ -166,19 +228,23 @@ export function AppShell({
   }, [drawerOpen, closeDrawer]);
 
   return (
-    <div className="wz-font-ui min-h-[100dvh] bg-[var(--wz-bg-alt)] text-[var(--wz-text)]">
+    <div className="wz-font-ui min-h-[100dvh] bg-surface-app text-ink">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-[var(--wz-border)] bg-[var(--wz-bg)] lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-chrome-border bg-surface-card lg:flex">
         <Brand />
-        <SidebarNav plan={user.plan} pathname={pathname} />
-        <ProfileChip user={user} />
+        <SidebarBody
+          user={user}
+          accounts={accounts}
+          usage={usage}
+          pathname={pathname}
+        />
       </aside>
 
       {/* Mobile drawer */}
       {drawerOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-[rgba(35,33,42,0.4)]"
             onClick={closeDrawer}
             aria-hidden
           />
@@ -187,7 +253,7 @@ export function AppShell({
             role="dialog"
             aria-modal="true"
             aria-label="Navigation"
-            className="wz-animate-sheet absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-[var(--wz-border)] bg-[var(--wz-bg)]"
+            className="wz-animate-sheet absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-chrome-border bg-surface-card"
           >
             <div className="flex h-14 items-center justify-between pr-2">
               <Brand />
@@ -196,47 +262,39 @@ export function AppShell({
                 type="button"
                 onClick={closeDrawer}
                 aria-label="Close navigation"
-                className="flex size-9 items-center justify-center rounded-md text-[var(--wz-text-muted)] hover:bg-[var(--wz-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wz-accent)]"
+                className="flex size-9 items-center justify-center rounded-md text-ink-tertiary hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
               >
                 <X className="size-5" />
               </button>
             </div>
-            {accounts.length > 1 && (
-              <div className="border-y border-[var(--wz-border)] px-4 py-3">
-                <AccountSwitcher accounts={accounts} />
-              </div>
-            )}
-            <SidebarNav
-              plan={user.plan}
+            <SidebarBody
+              user={user}
+              accounts={accounts}
+              usage={usage}
               pathname={pathname}
               onNavigate={closeDrawer}
             />
-            <ProfileChip user={user} />
           </div>
         </div>
       )}
 
-      {/* Topbar + main */}
       <div className="lg:pl-60">
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-[var(--wz-border)] bg-[var(--wz-bg)]/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-[var(--wz-bg)]/80 sm:px-6">
+        {/* Mobile-only bar. It exists to hold the hamburger; on desktop the
+            sidebar covers everything it would otherwise carry. */}
+        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-chrome-border bg-surface-card/90 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface-card/75 lg:hidden">
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
             aria-label="Open navigation"
-            className="flex size-9 items-center justify-center rounded-md text-[var(--wz-text-muted)] hover:bg-[var(--wz-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wz-accent)] lg:hidden"
+            className="flex size-9 items-center justify-center rounded-md text-ink-tertiary hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
           >
             <Menu className="size-5" />
           </button>
-
-          <div className="hidden lg:block">
-            <AccountSwitcher accounts={accounts} />
-          </div>
-
           <div className="flex-1" />
           <UserMenu user={user} />
         </header>
 
-        <main className="w-full px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main className="w-full px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
           {children}
         </main>
       </div>
