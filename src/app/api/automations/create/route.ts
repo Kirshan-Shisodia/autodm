@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 import {
+  autoDescription,
   autoName,
   createAutomationSchema,
   generateShortCode,
@@ -67,7 +68,9 @@ export async function POST(req: NextRequest) {
       dm_link: input.dm_link ?? null,
       comment_reply_text: input.comment_reply_text || null,
       is_active: true,
+      status: "active",
       name: autoName(input),
+      description: autoDescription(input),
     })
     .select("id")
     .single();

@@ -164,6 +164,24 @@ export function autoName(s: {
   return `${kw}${more} → DM on ${target}`;
 }
 
+/**
+ * The one-line subtitle the Automations list shows under the name. Plain
+ * English, no enum values — it has to read like something a person wrote.
+ */
+export function autoDescription(s: {
+  trigger_type: TriggerType;
+  trigger_keywords: string[];
+  media_id: string | null;
+}): string {
+  const target = s.media_id ? "a post" : "any post";
+  if (s.trigger_type === "all") {
+    return `Reply to every comment on ${target}`;
+  }
+  const keywords = s.trigger_keywords.slice(0, 3).join(", ");
+  if (!keywords) return `Reply to keyword comments on ${target}`;
+  return `Reply to comments mentioning ${keywords}`;
+}
+
 // ---- Server-side validation (spec §6.1) ----------------------------------
 
 export const createAutomationSchema = z

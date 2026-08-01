@@ -1,19 +1,26 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
 import { FREE_AUTOMATION_LIMIT, type Plan } from "@/lib/dashboard";
-import {
-  startOfToday,
-  type AutomationListItem,
-} from "@/lib/automations/list";
-import { AutomationsTable } from "@/components/automations/list/automations-table";
-import { Button } from "@/components/ui/button";
+import type { AutomationListItem } from "@/lib/automations/list";
+import { AutomationsScreen } from "@/components/automations/list/automations-screen";
 
-// Reads the automations table + a per-automation "DMs today" count; the only
-// writes (toggle/duplicate/delete) go through Server Actions (list spec §0, §8).
+// Reads every automation the user owns in one pass; searching, filtering,
+// sorting and paging all happen client-side over that set. Writes (status,
+// duplicate, delete, bulk) go through Server Actions in ./actions.ts.
 export const dynamic = "force-dynamic";
+
+type Row = {
+  id: string;
+  name: string;
+  description: string | null;
+  type: string;
+  status: AutomationListItem["status"];
+  total_triggers: number;
+  total_dms_sent: number;
+  total_clicks: number;
+  created_at: string;
+};
 
 export default async function AutomationsPage() {
   const supabase = await createClient();
@@ -25,66 +32,40 @@ export default async function AutomationsPage() {
     redirect("/login");
   }
 
-  const todayStart = startOfToday();
-
-  const [{ data: profile }, { data: rows }, { data: todayLogs }] =
-    await Promise.all([
-      supabase.from("users").select("plan").eq("id", user.id).single(),
-      supabase
-        .from("automations")
-        .select("id, name, type, is_active, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false }),
-      // One grouped pass for "DMs today" — fetch the day's sends and tally per
-      // automation client-side, avoiding an N+1 (spec §8).
-      supabase
-        .from("dm_logs")
-        .select("automation_id")
-        .eq("user_id", user.id)
-        .gte("sent_at", todayStart),
-    ]);
+  const [{ data: profile }, { data: rows }] = await Promise.all([
+    supabase.from("users").select("plan").eq("id", user.id).single(),
+    supabase
+      .from("automations")
+      .select(
+        "id, name, description, type, status, total_triggers, total_dms_sent, total_clicks, created_at",
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+  ]);
 
   const plan = (profile?.plan ?? "free") as Plan;
 
-  const dmsToday = new Map<string, number>();
-  for (const log of (todayLogs ?? []) as { automation_id: string | null }[]) {
-    if (!log.automation_id) continue;
-    dmsToday.set(log.automation_id, (dmsToday.get(log.automation_id) ?? 0) + 1);
-  }
-
-  const automations: AutomationListItem[] = (
-    (rows ?? []) as Omit<AutomationListItem, "dms_today">[]
-  ).map((a) => ({
-    ...a,
-    dms_today: dmsToday.get(a.id) ?? 0,
+  const automations: AutomationListItem[] = ((rows ?? []) as Row[]).map((r) => ({
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    type: r.type,
+    status: r.status,
+    // Triggers can't be below the sends they produced — guard against rows
+    // written before the counter existed.
+    triggers: Math.max(r.total_triggers ?? 0, r.total_dms_sent ?? 0),
+    dms_sent: r.total_dms_sent ?? 0,
+    link_clicks: r.total_clicks ?? 0,
+    created_at: r.created_at,
   }));
 
   // Free plan allows a single automation; at the limit, New routes to upgrade
-  // instead of the wizard (spec §7). Server-side create enforces this for real.
+  // instead of the wizard. Server-side create enforces this for real.
   const atFreeLimit =
     plan === "free" && automations.length >= FREE_AUTOMATION_LIMIT;
   const newHref = atFreeLimit
     ? "/billing?upgrade=pro&feature=automations"
     : "/automations/new";
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-[28px] font-semibold tracking-tight text-[var(--wz-text)] max-sm:text-[22px]">
-          Automations
-        </h1>
-        <Button
-          asChild
-          className="bg-[var(--wz-accent)] text-white hover:bg-[var(--wz-accent-hover)] max-sm:w-full"
-        >
-          <Link href={newHref}>
-            <Plus className="size-4" />
-            New automation
-          </Link>
-        </Button>
-      </div>
-
-      <AutomationsTable automations={automations} />
-    </div>
-  );
+  return <AutomationsScreen automations={automations} newHref={newHref} />;
 }

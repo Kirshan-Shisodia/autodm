@@ -1,35 +1,46 @@
 "use client";
 
-// The Automations list (list spec §4–§6). A quiet HALO data surface: white,
-// gridded, calm. The one alive interaction is the on/off toggle — optimistic,
-// with a confirming toast. Collapses from a table to cards under md (§11).
+// The Automations data table. A quiet HALO data surface: white, gridded, flat.
+// Numbers are mono and tabular so columns align down the page; the only colour
+// in the body is the status chip and the conversion pill.
+//
+// Under md the table collapses into one card per automation — a data table is
+// never scrolled sideways.
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
-import { Copy, MoreHorizontal, Pencil, Plus, Trash2, Zap } from "lucide-react";
-
 import {
-  formatCreated,
+  BarChart3,
+  CheckCircle2,
+  Copy,
+  MoreHorizontal,
+  Pause,
+  Pencil,
+  Play,
+  Trash2,
+} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import {
+  conversionRate,
+  conversionTone,
+  formatCount,
+  formatCreatedDate,
+  formatCreatedTime,
+  formatPercent,
+  STATUS_META,
   typeMeta,
   type AutomationListItem,
+  type AutomationStatus,
 } from "@/lib/automations/list";
 import {
-  deleteAutomation,
   duplicateAutomation,
-  toggleAutomation,
+  setAutomationStatus,
 } from "@/app/(app)/automations/actions";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,192 +48,264 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
+const HEAD =
+  "px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
+const HEAD_NUM = `${HEAD} text-right`;
+const CELL = "px-4 py-3 align-middle";
 
 export function AutomationsTable({
-  automations,
+  rows,
+  selected,
+  onToggleRow,
+  onToggleAll,
+  onRequestDelete,
 }: {
-  automations: AutomationListItem[];
+  rows: AutomationListItem[];
+  selected: Set<string>;
+  onToggleRow: (id: string, next: boolean) => void;
+  onToggleAll: (next: boolean) => void;
+  onRequestDelete: (item: AutomationListItem) => void;
 }) {
-  // The delete confirm is shared (one dialog), opened by any row's menu (§6).
-  const [deleteTarget, setDeleteTarget] = useState<AutomationListItem | null>(
-    null,
-  );
-
-  if (automations.length === 0) {
-    return <EmptyState />;
-  }
+  const allChecked = rows.length > 0 && rows.every((r) => selected.has(r.id));
+  const someChecked = rows.some((r) => selected.has(r.id));
+  const headState: boolean | "indeterminate" = allChecked
+    ? true
+    : someChecked
+      ? "indeterminate"
+      : false;
 
   return (
     <>
-      {/* Desktop / tablet: the full table. */}
-      <div className="hidden rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-white md:block">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-[var(--wz-border)] hover:bg-transparent">
-              <TableHead className="text-[var(--wz-text-muted)]">Name</TableHead>
-              <TableHead className="text-[var(--wz-text-muted)]">Type</TableHead>
-              <TableHead className="text-[var(--wz-text-muted)]">Status</TableHead>
-              <TableHead className="text-right text-[var(--wz-text-muted)]">
-                DMs today
-              </TableHead>
-              <TableHead className="hidden text-[var(--wz-text-muted)] lg:table-cell">
-                Created
-              </TableHead>
-              <TableHead className="w-10">
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {automations.map((a) => {
-              const { label, icon: Icon } = typeMeta(a.type);
+      {/* Desktop / tablet — the full grid. */}
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-border-default">
+              <th className="w-10 px-4 py-3">
+                <Checkbox
+                  checked={headState}
+                  onCheckedChange={(v) => onToggleAll(v === true)}
+                  aria-label="Select all automations on this page"
+                />
+              </th>
+              <th className={HEAD}>Automation</th>
+              <th className={HEAD}>Status</th>
+              <th className={HEAD_NUM}>Triggers</th>
+              <th className={HEAD_NUM}>DMs sent</th>
+              <th className={`${HEAD_NUM} hidden lg:table-cell`}>
+                Link clicks
+              </th>
+              <th className={`${HEAD_NUM} hidden lg:table-cell`}>Conversion</th>
+              <th className={`${HEAD} hidden xl:table-cell`}>Created</th>
+              <th className={`${HEAD} text-right`}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((item) => {
+              const { label, icon: Icon } = typeMeta(item.type);
+              const rate = conversionRate(item);
+              const isSelected = selected.has(item.id);
+
               return (
-                <TableRow
-                  key={a.id}
-                  className="border-[var(--wz-border)] hover:bg-[var(--wz-bg-alt)]"
+                <tr
+                  key={item.id}
+                  data-selected={isSelected || undefined}
+                  className="border-b border-border-subtle transition-colors duration-100 last:border-0 hover:bg-hover-bg data-selected:bg-hover-bg"
                 >
-                  <TableCell className="font-medium">
-                    <Link
-                      href={`/automations/${a.id}`}
-                      className="text-[var(--wz-text)] hover:underline"
-                    >
-                      {a.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center gap-2 text-[var(--wz-text-muted)]">
-                      <Icon className="size-4" aria-hidden />
-                      {label}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <StatusToggle automation={a} />
-                  </TableCell>
-                  <TableCell className="wz-font-mono text-right tabular-nums text-[var(--wz-text)]">
-                    {a.dms_today}
-                  </TableCell>
-                  <TableCell className="wz-font-mono hidden tabular-nums text-[var(--wz-text-muted)] lg:table-cell">
-                    {formatCreated(a.created_at)}
-                  </TableCell>
-                  <TableCell>
-                    <RowActions
-                      automation={a}
-                      onDelete={() => setDeleteTarget(a)}
+                  <td className="px-4 py-3">
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={(v) => onToggleRow(item.id, v === true)}
+                      aria-label={`Select ${item.name}`}
                     />
-                  </TableCell>
-                </TableRow>
+                  </td>
+
+                  <td className={CELL}>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-muted text-ink-secondary"
+                        aria-hidden
+                      >
+                        <Icon className="size-4" />
+                      </span>
+                      <span className="min-w-0">
+                        <Link
+                          href={`/automations/${item.id}`}
+                          className="block truncate text-[13px] font-medium text-ink hover:text-brand"
+                        >
+                          {item.name}
+                        </Link>
+                        <span className="block truncate text-[12px] text-ink-muted">
+                          {item.description ?? label}
+                        </span>
+                      </span>
+                    </div>
+                  </td>
+
+                  <td className={CELL}>
+                    <StatusChip status={item.status} />
+                  </td>
+
+                  <td
+                    className={`${CELL} wz-font-mono text-right text-[13px] text-ink-secondary`}
+                  >
+                    {formatCount(item.triggers)}
+                  </td>
+                  <td
+                    className={`${CELL} wz-font-mono text-right text-[13px] text-ink-secondary`}
+                  >
+                    {formatCount(item.dms_sent)}
+                  </td>
+                  <td
+                    className={`${CELL} wz-font-mono hidden text-right text-[13px] text-ink-secondary lg:table-cell`}
+                  >
+                    {formatCount(item.link_clicks)}
+                  </td>
+                  <td className={`${CELL} hidden text-right lg:table-cell`}>
+                    <ConversionPill rate={rate} />
+                  </td>
+
+                  <td className={`${CELL} hidden xl:table-cell`}>
+                    <span className="wz-font-mono block text-[12px] text-ink-secondary">
+                      {formatCreatedDate(item.created_at)}
+                    </span>
+                    <span className="wz-font-mono block text-[11px] text-ink-muted">
+                      {formatCreatedTime(item.created_at)}
+                    </span>
+                  </td>
+
+                  <td className={`${CELL} text-right`}>
+                    <RowActions
+                      item={item}
+                      onRequestDelete={() => onRequestDelete(item)}
+                    />
+                  </td>
+                </tr>
               );
             })}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
-      {/* Mobile: one card per automation — never scroll a table sideways (§11). */}
-      <div className="space-y-3 md:hidden">
-        {automations.map((a) => {
-          const { label, icon: Icon } = typeMeta(a.type);
+      {/* Mobile — one card per automation. */}
+      <div className="divide-y divide-border-subtle md:hidden">
+        {rows.map((item) => {
+          const { label, icon: Icon } = typeMeta(item.type);
+          const rate = conversionRate(item);
+
           return (
-            <div
-              key={a.id}
-              className="rounded-[var(--wz-r-card)] border border-[var(--wz-border)] bg-white p-4"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
+            <div key={item.id} className="p-4">
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  checked={selected.has(item.id)}
+                  onCheckedChange={(v) => onToggleRow(item.id, v === true)}
+                  aria-label={`Select ${item.name}`}
+                  className="mt-1"
+                />
+                <span
+                  className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-muted text-ink-secondary"
+                  aria-hidden
+                >
+                  <Icon className="size-4" />
+                </span>
+                <div className="min-w-0 flex-1">
                   <Link
-                    href={`/automations/${a.id}`}
-                    className="block truncate font-medium text-[var(--wz-text)]"
+                    href={`/automations/${item.id}`}
+                    className="block truncate text-[13px] font-medium text-ink"
                   >
-                    {a.name}
+                    {item.name}
                   </Link>
-                  <span className="mt-1 inline-flex items-center gap-1.5 text-sm text-[var(--wz-text-muted)]">
-                    <Icon className="size-4" aria-hidden />
-                    {label}
+                  <span className="block truncate text-[12px] text-ink-muted">
+                    {item.description ?? label}
                   </span>
                 </div>
-                <RowActions automation={a} onDelete={() => setDeleteTarget(a)} />
+                <RowActions
+                  item={item}
+                  onRequestDelete={() => onRequestDelete(item)}
+                />
               </div>
-              <div className="mt-4 flex items-center justify-between">
-                <StatusToggle automation={a} />
-                <span className="text-sm text-[var(--wz-text-muted)]">
-                  <span className="wz-font-mono tabular-nums text-[var(--wz-text)]">
-                    {a.dms_today}
-                  </span>{" "}
-                  DMs today
-                </span>
+
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 pl-[3.25rem]">
+                <StatusChip status={item.status} />
+                <Metric label="Triggers" value={formatCount(item.triggers)} />
+                <Metric label="DMs" value={formatCount(item.dms_sent)} />
+                <Metric label="Clicks" value={formatCount(item.link_clicks)} />
+                <ConversionPill rate={rate} />
               </div>
             </div>
           );
         })}
       </div>
-
-      <DeleteDialog
-        target={deleteTarget}
-        onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
-        }}
-      />
     </>
   );
 }
 
-// The signature interaction (§5): flip immediately, confirm with a toast, and
-// revert on error. The radix Switch gives role="switch" + keyboard for free.
-function StatusToggle({ automation }: { automation: AutomationListItem }) {
-  const [active, setActive] = useState(automation.is_active);
-  const [pending, startTransition] = useTransition();
-
-  function onChange(next: boolean) {
-    setActive(next); // optimistic
-    startTransition(async () => {
-      const res = await toggleAutomation(automation.id, next);
-      if (!res.ok) {
-        setActive(!next); // revert
-        toast.error("Couldn't update the automation. Try again.");
-      } else {
-        toast.success(next ? "Automation activated." : "Automation paused.");
-      }
-    });
-  }
-
+function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center gap-2">
-      <Switch
-        checked={active}
-        onCheckedChange={onChange}
-        disabled={pending}
-        aria-label={`Turn ${automation.name} ${active ? "off" : "on"}`}
-      />
-      <span
-        className="wz-font-mono w-7 text-xs font-medium tabular-nums text-[var(--wz-text-muted)]"
-        aria-hidden
-      >
-        {active ? "ON" : "OFF"}
-      </span>
-    </div>
+    <span className="text-[11px] text-ink-muted">
+      <span className="wz-font-mono text-[12px] font-medium text-ink-secondary">
+        {value}
+      </span>{" "}
+      {label}
+    </span>
   );
 }
 
+function StatusChip({ status }: { status: AutomationStatus }) {
+  const meta = STATUS_META[status];
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium",
+        meta.chip,
+      )}
+    >
+      <span className={cn("size-1.5 rounded-full", meta.dot)} aria-hidden />
+      {meta.label}
+    </span>
+  );
+}
+
+function ConversionPill({ rate }: { rate: number }) {
+  return (
+    <span
+      className={cn(
+        "wz-font-mono inline-flex rounded-md px-1.5 py-0.5 text-[12px] font-medium",
+        conversionTone(rate),
+      )}
+    >
+      {formatPercent(rate)}
+    </span>
+  );
+}
+
+// Analytics / edit are direct links; everything destructive or state-changing
+// hides one click deep in the kebab.
 function RowActions({
-  automation,
-  onDelete,
+  item,
+  onRequestDelete,
 }: {
-  automation: AutomationListItem;
-  onDelete: () => void;
+  item: AutomationListItem;
+  onRequestDelete: () => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
+  function move(status: AutomationStatus, message: string) {
+    startTransition(async () => {
+      const res = await setAutomationStatus(item.id, status);
+      if (!res.ok) {
+        toast.error("Couldn't update the automation. Try again.");
+        return;
+      }
+      toast.success(message);
+    });
+  }
+
   function onDuplicate() {
     startTransition(async () => {
-      const res = await duplicateAutomation(automation.id);
+      const res = await duplicateAutomation(item.id);
       if (!res.ok) {
         toast.error(
           res.error === "free_limit"
@@ -231,126 +314,94 @@ function RowActions({
         );
         return;
       }
-      toast.success("Automation duplicated.");
+      toast.success("Automation duplicated as a draft.");
       if (res.id) router.push(`/automations/${res.id}`);
     });
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-[var(--wz-text-muted)]"
-          aria-label={`Actions for ${automation.name}`}
-        >
-          <MoreHorizontal className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuItem asChild>
-          <Link href={`/automations/${automation.id}`}>
-            <Pencil className="size-4" />
-            Edit
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={onDuplicate} disabled={pending}>
-          <Copy className="size-4" />
-          Duplicate
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={(e) => {
-            e.preventDefault();
-            onDelete();
-          }}
-          className="text-[var(--wz-accent-pop)] focus:text-[var(--wz-accent-pop)]"
-        >
-          <Trash2 className="size-4" />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function DeleteDialog({
-  target,
-  onOpenChange,
-}: {
-  target: AutomationListItem | null;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const [pending, startTransition] = useTransition();
-
-  function onConfirm() {
-    if (!target) return;
-    const id = target.id;
-    startTransition(async () => {
-      const res = await deleteAutomation(id);
-      if (!res.ok) {
-        toast.error("Couldn't delete the automation. Try again.");
-        return;
-      }
-      toast.success("Automation deleted.");
-      onOpenChange(false);
-    });
-  }
-
-  return (
-    <Dialog open={target !== null} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete this automation?</DialogTitle>
-          <DialogDescription>
-            {target ? `"${target.name}" ` : ""}will be permanently removed. This
-            can&apos;t be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={pending}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={onConfirm}
-            disabled={pending}
-            className="bg-[var(--wz-accent-pop)] text-white hover:bg-[var(--wz-accent-pop)]/90"
-          >
-            {pending ? "Deleting…" : "Delete"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Spec §9 — an invitation with a CTA, not an apology.
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-[var(--wz-r-card)] border border-dashed border-[var(--wz-border)] bg-white px-6 py-16 text-center">
-      <div className="flex size-12 items-center justify-center rounded-full bg-[var(--wz-bg-alt)] text-[var(--wz-accent)]">
-        <Zap className="size-6" aria-hidden />
-      </div>
-      <h2 className="mt-4 text-lg font-semibold text-[var(--wz-text)]">
-        No automations yet
-      </h2>
-      <p className="mt-1 max-w-sm text-sm text-[var(--wz-text-muted)]">
-        Create one to auto-DM a link when someone comments your keyword.
-      </p>
+    <div className="flex items-center justify-end gap-0.5">
       <Button
         asChild
-        className="mt-6 bg-[var(--wz-accent)] text-white hover:bg-[var(--wz-accent-hover)]"
+        variant="ghost"
+        size="icon-sm"
+        className="text-ink-muted hover:bg-surface-muted hover:text-ink"
       >
-        <Link href="/automations/new">
-          <Plus className="size-4" />
-          Create your first automation
+        <Link
+          href={`/automations/${item.id}?tab=analytics`}
+          aria-label={`Analytics for ${item.name}`}
+        >
+          <BarChart3 className="size-4" />
         </Link>
       </Button>
+
+      <Button
+        asChild
+        variant="ghost"
+        size="icon-sm"
+        className="text-ink-muted hover:bg-surface-muted hover:text-ink"
+      >
+        <Link
+          href={`/automations/${item.id}`}
+          aria-label={`Edit ${item.name}`}
+        >
+          <Pencil className="size-4" />
+        </Link>
+      </Button>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            disabled={pending}
+            className="text-ink-muted hover:bg-surface-muted hover:text-ink"
+            aria-label={`More actions for ${item.name}`}
+          >
+            <MoreHorizontal className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          {item.status === "active" ? (
+            <DropdownMenuItem
+              onSelect={() => move("paused", "Automation paused.")}
+            >
+              <Pause className="size-4" />
+              Pause
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem
+              onSelect={() => move("active", "Automation activated.")}
+            >
+              <Play className="size-4" />
+              Activate
+            </DropdownMenuItem>
+          )}
+          {item.status !== "completed" && (
+            <DropdownMenuItem
+              onSelect={() => move("completed", "Automation marked complete.")}
+            >
+              <CheckCircle2 className="size-4" />
+              Mark complete
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem onSelect={onDuplicate}>
+            <Copy className="size-4" />
+            Duplicate
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              onRequestDelete();
+            }}
+            className="text-danger focus:text-danger"
+          >
+            <Trash2 className="size-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

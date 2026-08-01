@@ -181,6 +181,12 @@ export interface Database {
           email_followup_message: string | null;
           follow_required: boolean;
           is_active: boolean;
+          /** Lifecycle bucket driving the list tabs; is_active mirrors it. */
+          status: "active" | "paused" | "completed" | "draft";
+          /** Short subtitle shown under the name in the list. */
+          description: string | null;
+          /** Fires, including skipped/failed sends. Always >= total_dms_sent. */
+          total_triggers: number;
           total_dms_sent: number;
           total_clicks: number;
           created_at: string;
@@ -211,6 +217,9 @@ export interface Database {
           email_followup_message?: string | null;
           follow_required?: boolean;
           is_active?: boolean;
+          status?: "active" | "paused" | "completed" | "draft";
+          description?: string | null;
+          total_triggers?: number;
           total_dms_sent?: number;
           total_clicks?: number;
           created_at?: string;
@@ -241,6 +250,9 @@ export interface Database {
           email_followup_message?: string | null;
           follow_required?: boolean;
           is_active?: boolean;
+          status?: "active" | "paused" | "completed" | "draft";
+          description?: string | null;
+          total_triggers?: number;
           total_dms_sent?: number;
           total_clicks?: number;
           created_at?: string;
