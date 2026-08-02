@@ -124,6 +124,11 @@
   --shadow-floating: 0 8px 24px -4px rgba(26, 24, 32, 0.08);
 
   --breakpoint-2xl: 1440px; /* token override vs Tailwind default 1536 */
+  /* Three-up card rows only become honest here: below 1728 the Settings
+     content column is under ~1100px once the app sidebar and the summary rail
+     are subtracted, and a third column would take each card under 300px —
+     narrower than the selects inside a settings row. */
+  --breakpoint-3xl: 1728px;
 }
 
 :root {

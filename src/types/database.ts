@@ -6,6 +6,185 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+// ------------------------------------------------------------------
+// Settings row shapes.
+//
+// The ten settings tables are far more regular than the core schema —
+// six are one-row-per-user preference sheets and four are owned
+// collections — so their Row types are declared once here and wired
+// into `Database["public"]["Tables"]` through the two helpers below.
+// Every column not listed in the required set is server-defaulted, so
+// Insert only ever needs the owner (plus the handful of columns with
+// no sensible default).
+// ------------------------------------------------------------------
+
+type SettingsSheetInsert<Row extends { user_id: string }> = Partial<
+  Omit<Row, "user_id">
+> & { user_id: string };
+
+type SettingsSheet<Row extends { user_id: string }> = {
+  Row: Row;
+  Insert: SettingsSheetInsert<Row>;
+  Update: Partial<Row>;
+  Relationships: [
+    {
+      foreignKeyName: string;
+      columns: ["user_id"];
+      referencedRelation: "users";
+      referencedColumns: ["id"];
+    },
+  ];
+};
+
+type OwnedInsert<Row, Required extends keyof Row> = Pick<Row, Required> &
+  Partial<Omit<Row, Required>>;
+
+export type WorkspaceSettingsRow = {
+  user_id: string;
+  workspace_name: string;
+  workspace_timezone: string;
+  workspace_language: string;
+  phone_number: string | null;
+  dark_mode: boolean;
+  compact_mode: boolean;
+  sound_notifications: boolean;
+  email_digest: boolean;
+  marketing_emails: boolean;
+  auto_refresh_data: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type NotificationSettingsRow = {
+  user_id: string;
+  email: Json;
+  push: Json;
+  in_app: Json;
+  quiet_hours_enabled: boolean;
+  quiet_hours_start: string;
+  quiet_hours_end: string;
+  quiet_hours_timezone: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AutomationDefaultsRow = {
+  user_id: string;
+  trigger_type: "new_comment" | "new_dm" | "story_reply" | "mention" | "keyword";
+  reply_type: "send_message" | "reply_comment" | "both" | "no_reply";
+  time_delay_seconds: number;
+  working_hours_start: string;
+  working_hours_end: string;
+  timezone: string;
+  require_approval: boolean;
+  dm_limit_per_day: number;
+  retry_attempts: number;
+  fallback_message: string;
+  label: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DmSettingsRow = {
+  user_id: string;
+  auto_dm_enabled: boolean;
+  message_type: "text" | "media" | "button" | "carousel";
+  template_id: string | null;
+  typing_delay_seconds: number;
+  link_preview: boolean;
+  media_support: boolean;
+  max_file_size_mb: number;
+  humanize_messages: boolean;
+  stop_on_unsubscribe: boolean;
+  block_non_followers: boolean;
+  fallback_message: string;
+  daily_dm_limit_per_user: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PrivacySettingsRow = {
+  user_id: string;
+  profile_visibility: "public" | "workspace" | "private";
+  activity_visibility: boolean;
+  data_sharing: boolean;
+  personalized_recommendations: boolean;
+  retention_months: number;
+  marketing_communications: boolean;
+  data_storage_location:
+    | "ap-south-1"
+    | "us-east-1"
+    | "eu-west-1"
+    | "ap-southeast-1";
+  created_at: string;
+  updated_at: string;
+};
+
+export type ApiSettingsRow = {
+  user_id: string;
+  api_access_enabled: boolean;
+  rate_limit_per_min: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TeamMemberRow = {
+  id: string;
+  owner_id: string;
+  member_user_id: string | null;
+  email: string;
+  full_name: string | null;
+  role: "owner" | "admin" | "editor" | "viewer";
+  scopes: string[];
+  status: "active" | "pending" | "suspended";
+  invited_at: string;
+  joined_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ApiKeyRow = {
+  id: string;
+  user_id: string;
+  name: string;
+  prefix: string;
+  key_hash: string;
+  last4: string;
+  scope: "full_access" | "read_only";
+  status: "active" | "revoked";
+  last_used_at: string | null;
+  revoked_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WebhookEndpointRow = {
+  id: string;
+  user_id: string;
+  url: string;
+  description: string | null;
+  events: string[];
+  secret: string;
+  status: "active" | "paused" | "failing";
+  last_triggered_at: string | null;
+  last_status_code: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type IntegrationRow = {
+  id: string;
+  user_id: string;
+  provider: string;
+  status: "connected" | "disconnected" | "error";
+  account_label: string | null;
+  config: Json;
+  connected_at: string | null;
+  last_synced_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -738,6 +917,101 @@ export interface Database {
           {
             foreignKeyName: "referrals_referred_user_id_fkey";
             columns: ["referred_user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+
+      // ----------------------------------------------------------------
+      // Settings (migration 20260802000000_settings.sql)
+      // ----------------------------------------------------------------
+
+      workspace_settings: SettingsSheet<WorkspaceSettingsRow>;
+      notification_settings: SettingsSheet<NotificationSettingsRow>;
+      automation_defaults: SettingsSheet<AutomationDefaultsRow>;
+      privacy_settings: SettingsSheet<PrivacySettingsRow>;
+      api_settings: SettingsSheet<ApiSettingsRow>;
+
+      dm_settings: {
+        Row: DmSettingsRow;
+        Insert: SettingsSheetInsert<DmSettingsRow>;
+        Update: Partial<DmSettingsRow>;
+        Relationships: [
+          {
+            foreignKeyName: "dm_settings_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dm_settings_template_id_fkey";
+            columns: ["template_id"];
+            referencedRelation: "templates";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+
+      team_members: {
+        Row: TeamMemberRow;
+        Insert: OwnedInsert<TeamMemberRow, "owner_id" | "email">;
+        Update: Partial<TeamMemberRow>;
+        Relationships: [
+          {
+            foreignKeyName: "team_members_owner_id_fkey";
+            columns: ["owner_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_members_member_user_id_fkey";
+            columns: ["member_user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+
+      api_keys: {
+        Row: ApiKeyRow;
+        Insert: OwnedInsert<
+          ApiKeyRow,
+          "user_id" | "name" | "prefix" | "key_hash" | "last4"
+        >;
+        Update: Partial<ApiKeyRow>;
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+
+      webhook_endpoints: {
+        Row: WebhookEndpointRow;
+        Insert: OwnedInsert<WebhookEndpointRow, "user_id" | "url" | "secret">;
+        Update: Partial<WebhookEndpointRow>;
+        Relationships: [
+          {
+            foreignKeyName: "webhook_endpoints_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+
+      integrations: {
+        Row: IntegrationRow;
+        Insert: OwnedInsert<IntegrationRow, "user_id" | "provider">;
+        Update: Partial<IntegrationRow>;
+        Relationships: [
+          {
+            foreignKeyName: "integrations_user_id_fkey";
+            columns: ["user_id"];
             referencedRelation: "users";
             referencedColumns: ["id"];
           },
