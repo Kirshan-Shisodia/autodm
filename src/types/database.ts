@@ -716,7 +716,15 @@ export interface Database {
           email: string;
           ig_username: string | null;
           ig_user_id: string | null;
+          /**
+           * Canonical origin vocabulary. Derived from automations.type at
+           * insert time by trg_leads_classify when the caller doesn't set it.
+           */
           source: string;
+          /** Funnel bucket: new | engaged | converted | archived. */
+          status: string;
+          /** Lowercased, de-duplicated display labels. */
+          tags: string[];
           synced_to_kit: boolean;
           synced_to_flodesk: boolean;
           /**
@@ -725,6 +733,8 @@ export interface Database {
            */
           revenue_amount: number;
           created_at: string;
+          /** Sort key for the Leads list; defaults to created_at on insert. */
+          last_activity_at: string;
         };
         Insert: {
           id?: string;
@@ -735,10 +745,13 @@ export interface Database {
           ig_username?: string | null;
           ig_user_id?: string | null;
           source?: string;
+          status?: string;
+          tags?: string[];
           synced_to_kit?: boolean;
           synced_to_flodesk?: boolean;
           revenue_amount?: number;
           created_at?: string;
+          last_activity_at?: string;
         };
         Update: {
           id?: string;
@@ -749,10 +762,13 @@ export interface Database {
           ig_username?: string | null;
           ig_user_id?: string | null;
           source?: string;
+          status?: string;
+          tags?: string[];
           synced_to_kit?: boolean;
           synced_to_flodesk?: boolean;
           revenue_amount?: number;
           created_at?: string;
+          last_activity_at?: string;
         };
         Relationships: [
           {

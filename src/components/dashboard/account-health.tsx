@@ -12,13 +12,12 @@ import { cn } from "@/lib/utils";
 import { AnalyticsCard } from "@/components/analytics/card";
 import type { HealthTile, HealthTone } from "@/lib/dashboard/query";
 
-// HALO status indicators. Arbitrary hexes rather than utilities because the
-// token file exposes these three as `status.*.indicator`, and there is no
-// `bg-indicator-success` in the theme layer.
+// HALO status.*.indicator, now exposed as utilities in globals.css rather than
+// inlined as raw hexes here.
 const DOT: Record<HealthTone, string> = {
-  ok: "bg-[#3eaa83]",
-  warn: "bg-[#a96b24]",
-  bad: "bg-[#e0413a]",
+  ok: "bg-success-indicator",
+  warn: "bg-warning-indicator",
+  bad: "bg-danger-indicator",
   idle: "bg-border-strong",
 };
 
@@ -50,11 +49,17 @@ export function AccountHealth({
         </Link>
       }
     >
-      <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+      {/* This card has the least to say in its row — four short tiles against a
+          funnel and a table — so the shared row height leaves it with surplus.
+          `auto-rows-fr` hands that surplus to the tiles evenly, and each tile
+          centres its own content: a tall tile with three lines pinned to the
+          top reads as a rendering bug, the same three lines centred reads as a
+          tile that was meant to be that size. */}
+      <ul className="grid h-full auto-rows-fr grid-cols-1 gap-2.5 sm:grid-cols-2">
         {tiles.map((tile) => (
           <li
             key={tile.key}
-            className="rounded-lg border border-border-subtle bg-surface-app px-3 py-2.5"
+            className="flex flex-col justify-center rounded-lg border border-border-subtle bg-surface-app px-3 py-2.5"
           >
             <p className="truncate text-[11px] font-medium text-ink-tertiary">
               {tile.label}

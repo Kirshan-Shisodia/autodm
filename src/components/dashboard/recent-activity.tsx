@@ -38,7 +38,22 @@ const ICONS: Record<ActivityKind, LucideIcon> = {
   automation_edited: Pencil,
 };
 
+/** How many rows the feed keeps in memory. The card scrolls to reach the rest. */
 const MAX_ROWS = 8;
+
+/**
+ * Floor for the feed, in px — roughly four rows.
+ *
+ * The feed is `flex-1` above this, so it takes whatever height the row's taller
+ * card (the 248px chart) hands it and scrolls past that. The floor only matters
+ * when this card is the tall one, and it stops the list collapsing to a single
+ * row on a quiet week.
+ *
+ * Height-capped rather than `rows.slice(0, 4)`: slicing would mean a realtime
+ * row arriving at the top pushes the last one out of existence, leaving nothing
+ * to scroll to. Everything the feed holds stays reachable.
+ */
+const FEED_MIN_HEIGHT = 216;
 
 /** Re-render every 30s so "2m ago" stays true. Bucketed to keep it stable. */
 function subscribeToClock(onChange: () => void): () => void {
@@ -62,14 +77,21 @@ export function RecentActivity({
 }) {
   const [rows, setRows] = useState<ActivityRow[]>(initialRows);
   const [flashIds, setFlashIds] = useState<Set<string>>(new Set());
+  const [syncedRows, setSyncedRows] = useState<ActivityRow[]>(initialRows);
 
   // A fresh server render (range change, navigation) wins over accumulated
   // realtime state — otherwise switching to "last 7 days" keeps showing rows
   // from outside the window.
-  useEffect(() => {
+  //
+  // Adjusted during render rather than in an effect. As an effect this painted
+  // the stale feed first and then immediately re-rendered with the new one,
+  // which is the cascading update React warns about — and on a live feed that
+  // flicker is visible.
+  if (initialRows !== syncedRows) {
+    setSyncedRows(initialRows);
     setRows(initialRows);
     setFlashIds(new Set());
-  }, [initialRows]);
+  }
 
   useEffect(() => {
     const supabase = createClient();
@@ -130,6 +152,9 @@ export function RecentActivity({
     <AnalyticsCard
       title="Recent Activity"
       className={className}
+      // The card body is a plain block by default; the feed needs it to be a
+      // flex column before `flex-1` on the list means anything.
+      bodyClassName="flex flex-col"
       action={
         <Link
           href="/analytics"
@@ -159,7 +184,21 @@ export function RecentActivity({
           </div>
         )
       ) : (
-        <ul aria-live="polite" className="space-y-0.5">
+        // `tabIndex={0}` because a scrollable region that can only be reached
+        // with a mouse is unreachable for keyboard users — the browser needs it
+        // to be focusable before arrow keys will scroll it.
+        //
+        // The explicit `minHeight` is also what makes the scrolling work. A flex
+        // item defaults to `min-height: auto`, which means it grows to fit its
+        // content and the overflow never triggers; any explicit value overrides
+        // that, so the list is free to be shorter than its contents.
+        <ul
+          aria-live="polite"
+          tabIndex={0}
+          aria-label="Recent activity feed, scrollable"
+          className="flex-1 space-y-0.5 overflow-y-auto overscroll-contain pr-1 focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
+          style={{ minHeight: FEED_MIN_HEIGHT }}
+        >
           {rows.map((row) => {
             const Icon = ICONS[row.kind];
             const meta = ACTIVITY_META[row.kind];

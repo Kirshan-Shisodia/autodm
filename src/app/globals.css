@@ -101,6 +101,14 @@
   --color-running: #6647c9; /* status.running.text */
   --color-running-bg: #f7f4fc; /* status.running.bg */
 
+  /* status.*.indicator — the saturated dot colours. Distinct from the `text`
+     variants above, which are darkened for contrast against a tinted fill; a
+     1.5px dot needs the chroma, not the legibility. Added because the health
+     tiles were reaching for these as raw hexes for want of a utility. */
+  --color-success-indicator: #3eaa83;
+  --color-warning-indicator: #a96b24;
+  --color-danger-indicator: #e0413a;
+
   /* Display type scale (HALO font.size) — headings only; base left to Tailwind. */
   --text-display-sm: 36px;
   --text-display-sm--line-height: 40px;

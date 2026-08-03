@@ -78,9 +78,15 @@ export function PerformanceOverview({
       }
     >
       {!hasData ? (
-        <CardEmpty>
-          No {active === "dmsSent" ? "DMs" : "link clicks"} in this period yet.
-        </CardEmpty>
+        // The empty state occupies the same 248px the chart would. Letting it
+        // collapse to a line of text made the card shrink to half height on a
+        // quiet week, which dragged the whole row out of alignment — the card
+        // is the same object whether or not it has data to draw.
+        <div className="flex h-[248px] items-center justify-center">
+          <CardEmpty>
+            No {active === "dmsSent" ? "DMs" : "link clicks"} in this period yet.
+          </CardEmpty>
+        </div>
       ) : (
         <div className="h-[248px] w-full">
           <ResponsiveContainer width="100%" height="100%">

@@ -82,7 +82,10 @@ export default async function DashboardPage({
         </p>
       )}
 
-      {/* Chart carries the width; the feed rides alongside it at 1/3. */}
+      {/* Chart carries the width; the feed rides alongside it at 1/3. Both
+          cards stretch to a shared height and each fills it from the inside —
+          the chart holds 248px whether or not it has data, and the feed grows
+          into whatever is left and scrolls past it. */}
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
         <PerformanceOverview
           title="Activity Overview"
